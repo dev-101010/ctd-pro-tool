@@ -35,7 +35,7 @@
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
         button.classList.add("btn", "btn-success");
-        button.style.padding = "5px";
+        button.style.margin = "5px";
         button.addEventListener("click", () => {
             sessionStorage.setItem("userToken", userToken);
             sessionStorage.setItem("authToken", authToken);
