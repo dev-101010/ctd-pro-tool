@@ -14,7 +14,7 @@
 
         const authToken = window.opener?.sessionStorage.getItem("authToken");
         const userToken = window.opener?.sessionStorage.getItem("userToken");
-        const serverURI = "wss://ctd.drochmann.de:8125";
+        const serverURI = "wss://ctd.drochmann.de:8225";
 
         if (!userToken || !authToken) {
             console.log("Kein Token gefunden!");
