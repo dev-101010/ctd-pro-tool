@@ -21,21 +21,21 @@
 
     });
 
-    async function createButton(container) {
-
-        const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
-
-        const response = await fetch(popupUrl);
-        const html = await response.text();
-
-        const blob = new Blob([html], { type: "text/html" });
-        const blobUrl = URL.createObjectURL(blob);
+    function createButton(container) {
 
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
         button.classList.add("btn", "btn-success");
         button.style.margin = "5px";
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
+            const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
+
+            const response = await fetch(popupUrl);
+            const html = await response.text();
+
+            const blob = new Blob([html], { type: "text/html" });
+            const blobUrl = URL.createObjectURL(blob);
+
             sessionStorage.setItem("userToken", userToken);
             sessionStorage.setItem("authToken", authToken);
             window.open(blobUrl, "_blank", "width=800,height=400");
