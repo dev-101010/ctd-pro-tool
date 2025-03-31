@@ -30,7 +30,8 @@
         const blob = new Blob([htmlText], { type: "text/html" });
 
         // Erzeuge eine URL, die man mit window.open verwenden kann
-        const popupUrl = URL.createObjectURL(blob);
+        // popupUrl = URL.createObjectURL(blob);
+        const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
 
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
