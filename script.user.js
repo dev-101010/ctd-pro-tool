@@ -37,7 +37,7 @@
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
         button.addEventListener("click", () => {
-            sessionStorage.setItem("userToken", "sdkjulhf89udhs89fhjs9d8ufh9");
+            sessionStorage.setItem("userToken", userToken);
             window.open(popupUrl, "_blank", "width=600,height=400");
         });
         container.appendChild(button);
