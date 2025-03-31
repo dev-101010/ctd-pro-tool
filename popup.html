@@ -118,7 +118,7 @@
 
 <div class="tab-content active">
     <div class="header-bar">
-        <div class="xp-display">Coins: <span id="xpCounter">0</span></div>
+        <div class="xp-display">Credits: <span id="xpCounter">0</span>/<span id="xpUpgrade">0</span></div>
         <div class="controls">
             <label for="profileSelect">Profiles</label>
             <select id="profileSelect">
@@ -149,12 +149,17 @@
 
     let userData = {};
     let mapData = {};
+    let towerMainValues = {};
+
     let mapCredits = 0;
+    let openCredits = 0;
+    let neededCredits = 5;
 
     const skills = ['Stärke', 'Geschick', 'Intelligenz'];
     const skillData = [];
     const skillContainer = document.getElementById('skillContainer');
     const xpCounter = document.getElementById('xpCounter');
+    const xpUpgrade = document.getElementById('xpUpgrade');
 
     function showTab(index) {
         const buttons = document.querySelectorAll('.tab-button');
@@ -222,14 +227,31 @@
         socket.on("mapCreditsChanged", (data,act) => {
             act();
             mapCredits = data.amount;
-            xpCounter.innerHTML = `${data.amount}`;
+            updateCredits();
         });
+
+        socket.on("towerMainValuesChanged", (data,act) => {
+            act();
+            if(userData.uid === data.user.uid) {
+                towerMainValues = data.data;
+                updateCredits();
+            }
+        });
+    }
+
+    function updateCredits() {
+        openCredits = mapCredits - (towerMainValues.creditsUsed ?? 0);
+        xpCounter.innerHTML = `${openCredits}`;
+        neededCredits = (mapData.map.towerUpgradeCost ?? 5) * (towerMainValues.upgradeMulti ?? 1);
+        xpUpgrade.innerHTML = `${neededCredits}`;
     }
 
     function reset() {
         mapData = {};
         mapCredits = 0;
-        xpCounter.innerHTML = "0";
+        openCredits = 0;
+
+        updateCredits();
     }
 
     function createSkillRow(skillName, skillIndex) {
