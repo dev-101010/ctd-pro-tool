@@ -11,7 +11,7 @@
 // ==/UserScript==
 
 (function () {
-    'use strict';
+    'use strict'; 
 
     window.addEventListener("load", () => {
 
