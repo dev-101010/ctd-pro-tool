@@ -16,10 +16,8 @@
     window.addEventListener("load", () => {
 
         const gameContainerUpgrade = document.getElementById("gameContainerUpgrade");
-        if (gameContainerUpgrade) {
-            createButton(gameContainerUpgrade);
-            return;
-        }
+        if (!gameContainerUpgrade) return;
+        createButton(gameContainerUpgrade);
 
     });
 
@@ -36,6 +34,7 @@
 
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
+        button.classList.add("btn", "btn-success");
         button.addEventListener("click", () => {
             sessionStorage.setItem("userToken", userToken);
             window.open(popupUrl, "_blank", "width=600,height=400");
