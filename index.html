@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Popup Page</title>
+</head>
+<body>
+<h1>Popup</h1>
+<pre id="output">Token wird geladen...</pre>
+
+<script>
+  window.addEventListener("load", () => {
+    const output = document.getElementById("output");
+
+    // Token aus dem sessionStorage des openers lesen
+    const token = window.opener?.sessionStorage.getItem("userToken");
+
+    if (token) {
+      output.textContent = `Token empfangen:\n${token}`;
+      // Optional: Token nach einmaligem Lesen löschen
+      // window.opener.sessionStorage.removeItem("userToken");
+    } else {
+      output.textContent = "Kein Token gefunden oder nicht über opener geöffnet.";
+    }
+  });
+</script>
+</body>
+</html>
