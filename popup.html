@@ -33,11 +33,13 @@
         }
 
         .tab-content {
+            display: none;
             padding: 20px;
         }
 
         .tab-content.active {
             display: block;
+
         }
 
         .header-bar {
@@ -113,6 +115,7 @@
     <div class="header-bar">
         <div class="xp-display">XP: <span id="xpCounter">100</span></div>
         <div class="controls">
+            <label for="profileSelect">Profiles</label>
             <select id="profileSelect">
                 <!-- Dynamisch befüllt -->
             </select>
