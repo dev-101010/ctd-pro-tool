@@ -240,9 +240,9 @@
     }
 
     function updateCredits() {
-        openCredits = mapCredits - (towerMainValues.creditsUsed ?? 0);
+        openCredits = mapCredits - (towerMainValues.creditsUsed || 0);
         xpCounter.innerHTML = `${openCredits}`;
-        neededCredits = (mapData.map.towerUpgradeCost ?? 5) * (towerMainValues.upgradeMulti ?? 1);
+        neededCredits = (mapData.map?.towerUpgradeCost || 5) * (towerMainValues.upgradeMulti || 1);
         xpUpgrade.innerHTML = `${neededCredits}`;
     }
 
