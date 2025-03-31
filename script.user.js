@@ -24,10 +24,10 @@
     function createButton(container) {
 
         // Lade die HTML-Resource
-        const htmlText = GM_getResourceText("popupHtml");
+        //const htmlText = GM_getResourceText("popupHtml");
 
         // Erzeuge einen Blob daraus
-        const blob = new Blob([htmlText], { type: "text/html" });
+        //const blob = new Blob([htmlText], { type: "text/html" });
 
         // Erzeuge eine URL, die man mit window.open verwenden kann
         // popupUrl = URL.createObjectURL(blob);
