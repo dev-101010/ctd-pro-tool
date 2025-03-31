@@ -33,26 +33,97 @@
         }
 
         .tab-content {
-            display: none;
             padding: 20px;
         }
 
         .tab-content.active {
             display: block;
         }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .xp-display {
+            font-size: 18px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .skill-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .skill-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .skill-name {
+            width: 100px;
+        }
+
+        .skill-boxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        .box {
+            width: 12px;
+            height: 12px;
+            background-color: #444;
+            border: 1px solid #666;
+            cursor: pointer;
+        }
+
+        .box.active {
+            background-color: limegreen;
+        }
     </style>
 </head>
 <body>
 
 <div class="tab-menu">
-    <button class="tab-button active" onclick="showTab(0)">Tab 1</button>
+    <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
     <button class="tab-button" onclick="showTab(1)">Tab 2</button>
     <button class="tab-button" onclick="showTab(2)">Tab 3</button>
 </div>
 
 <div class="tab-content active">
-    <h2>Inhalt Tab 1</h2>
-    <p>Hier steht der Inhalt des ersten Tabs.</p>
+    <div class="header-bar">
+        <div class="xp-display">XP: <span id="xpCounter">100</span></div>
+        <div class="controls">
+            <select id="profileSelect">
+                <!-- Dynamisch befüllt -->
+            </select>
+            <button onclick="newProfile()">➕</button>
+            <button onclick="saveProfile()">💾</button>
+        </div>
+    </div>
+
+    <div class="skill-container" id="skillContainer">
+        <!-- Dynamisch generierte Skills -->
+    </div>
 </div>
 
 <div class="tab-content">
@@ -114,6 +185,60 @@
             });
             console.log("Auth success");
         });
+    }
+
+    const skills = ['Stärke', 'Geschick', 'Intelligenz'];
+    const skillData = [];
+    const skillContainer = document.getElementById('skillContainer');
+
+    function createSkillRow(skillName, skillIndex) {
+        const row = document.createElement('div');
+        row.className = 'skill-row';
+
+        const label = document.createElement('div');
+        label.className = 'skill-name';
+        label.textContent = skillName;
+        row.appendChild(label);
+
+        const boxes = document.createElement('div');
+        boxes.className = 'skill-boxes';
+
+        for (let i = 0; i < 100; i++) {
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.dataset.index = i;
+            box.dataset.skill = skillIndex;
+
+            box.addEventListener('click', () => {
+                // Nur eine Box pro Spalte aktiv
+                document.querySelectorAll(`.box[data-index="${i}"]`).forEach(b => b.classList.remove('active'));
+                box.classList.add('active');
+            });
+
+            boxes.appendChild(box);
+        }
+
+        row.appendChild(boxes);
+        skillContainer.appendChild(row);
+    }
+
+    // Initiales Rendering
+    skills.forEach((name, idx) => {
+        createSkillRow(name, idx);
+    });
+
+    function newProfile() {
+        const name = prompt("Profilname?");
+        if (name) {
+            const option = document.createElement('option');
+            option.textContent = name;
+            document.getElementById('profileSelect').appendChild(option);
+        }
+    }
+
+    function saveProfile() {
+        alert("Profil gespeichert (Demo-Funktion).");
+        // Hier kannst du später die aktive Verteilung als JSON speichern oder ähnliches
     }
 
     window.addEventListener("load", () => {
