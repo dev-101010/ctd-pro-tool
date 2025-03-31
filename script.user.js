@@ -13,15 +13,15 @@
 (function () {
     'use strict'; 
 
-    window.addEventListener("load", () => {
+    window.addEventListener("load", async () => {
 
         const gameContainerUpgrade = document.getElementById("gameContainerUpgrade");
         if (!gameContainerUpgrade) return;
-        createButton(gameContainerUpgrade);
+        await createButton(gameContainerUpgrade);
 
     });
 
-    function createButton(container) {
+    async function createButton(container) {
 
         // Lade die HTML-Resource
         //const htmlText = GM_getResourceText("popupHtml");
@@ -33,6 +33,14 @@
         // popupUrl = URL.createObjectURL(blob);
         const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
 
+        // Lade den HTML-Inhalt von GitHub
+        const response = await fetch(popupUrl);
+        const html = await response.text();
+
+        // Erzeuge einen echten HTML-BLOB mit dem richtigen MIME-Type
+        const blob = new Blob([html], { type: "text/html" });
+        const blobUrl = URL.createObjectURL(blob);
+
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
         button.classList.add("btn", "btn-success");
@@ -40,7 +48,7 @@
         button.addEventListener("click", () => {
             sessionStorage.setItem("userToken", userToken);
             sessionStorage.setItem("authToken", authToken);
-            window.open(popupUrl, "_blank", "width=600,height=400");
+            window.open(blobUrl, "_blank", "width=600,height=400");
         });
         container.appendChild(button);
     }
