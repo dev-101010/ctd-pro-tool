@@ -222,7 +222,7 @@
         socket.on("mapCreditsChanged", (data,act) => {
             act();
             mapCredits = data.amount;
-            xpCounter.innerText = `${data.amount}`;
+            xpCounter.innerHTML = `${data.amount}`;
         });
     }
 
