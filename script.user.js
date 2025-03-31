@@ -6,7 +6,7 @@
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=c-td.de
-// @resource     popupHtml https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html
+// @resource     popupHtml https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/master/popup.html
 // @grant        GM_getResourceText
 // ==/UserScript==
 
