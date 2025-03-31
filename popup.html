@@ -20,8 +20,6 @@
             console.log("Kein Token gefunden!");
             return;
         }
-        console.log(authToken);
-        console.log(userToken);
 
         const socket = io(serverURI, {
             reconnection: true,
