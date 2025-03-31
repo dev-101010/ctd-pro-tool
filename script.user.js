@@ -38,6 +38,7 @@
         button.style.padding = "5px";
         button.addEventListener("click", () => {
             sessionStorage.setItem("userToken", userToken);
+            sessionStorage.setItem("authToken", authToken);
             window.open(popupUrl, "_blank", "width=600,height=400");
         });
         container.appendChild(button);
