@@ -26,7 +26,9 @@
             const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
 
             const bust = Date.now();
-            const response = await fetch(`${popupUrl}?v=${bust}`);
+            const response = await fetch(`${popupUrl}?v=${bust}`, {
+                cache: "no-store"
+            });
             const html = await response.text();
 
             const blob = new Blob([html], { type: "text/html" });
