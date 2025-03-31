@@ -10,18 +10,18 @@
 
 <script>
   window.addEventListener("load", () => {
-    const output = document.getElementById("output");
 
-    // Token aus dem sessionStorage des openers lesen
-    const token = window.opener?.sessionStorage.getItem("userToken");
 
-    if (token) {
-      output.textContent = `Token empfangen:\n${token}`;
-      // Optional: Token nach einmaligem Lesen löschen
-      // window.opener.sessionStorage.removeItem("userToken");
-    } else {
-      output.textContent = "Kein Token gefunden oder nicht über opener geöffnet.";
+    const authToken = window.opener?.sessionStorage.getItem("authToken");
+    const userToken = window.opener?.sessionStorage.getItem("userToken");
+    const serverURI = "wss://ctd.drochmann.de:8125";
+
+    if (!userToken) {
+      console.log("Kein Token gefunden oder nicht über opener geöffnet.");
+      return;
     }
+    console.log(authToken);
+    console.log(userToken);
   });
 </script>
 </body>
