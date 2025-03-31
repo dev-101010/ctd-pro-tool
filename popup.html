@@ -73,6 +73,7 @@
             gap: 15px;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .skill-row {
             display: flex;
             align-items: center;
@@ -80,16 +81,19 @@
             flex-wrap: wrap;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .skill-name {
             width: 100px;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .skill-boxes {
             display: flex;
             flex-wrap: wrap;
             gap: 2px;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .box {
             width: 12px;
             height: 12px;
@@ -98,6 +102,7 @@
             cursor: pointer;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .box.active {
             background-color: limegreen;
         }
@@ -113,7 +118,7 @@
 
 <div class="tab-content active">
     <div class="header-bar">
-        <div class="xp-display">XP: <span id="xpCounter">100</span></div>
+        <div class="xp-display">XP: <span id="xpCounter">0</span></div>
         <div class="controls">
             <label for="profileSelect">Profiles</label>
             <select id="profileSelect">
@@ -140,6 +145,16 @@
 </div>
 
 <script>
+
+
+    let userData = {};
+    let mapData = {};
+    let mapCredits = 0;
+
+    const skills = ['Stärke', 'Geschick', 'Intelligenz'];
+    const skillData = [];
+    const skillContainer = document.getElementById('skillContainer');
+    const xpCounter = document.getElementById('xpCounter');
 
     function showTab(index) {
         const buttons = document.querySelectorAll('.tab-button');
@@ -188,11 +203,34 @@
             });
             console.log("Auth success");
         });
+
+        socket.on("updateUserDetails", (data,act) => {
+            act();
+            userData = data;
+        });
+
+        socket.on("mapLoaded", (data,act) => {
+            act();
+            mapData = data.data;
+        });
+
+        socket.on("mapClosed", (data,act) => {
+            act();
+            reset();
+        });
+
+        socket.on("mapCreditsChanged", (data,act) => {
+            act();
+            mapCredits = data.amount;
+            xpCounter.innerText = `${data.amount}`;
+        });
     }
 
-    const skills = ['Stärke', 'Geschick', 'Intelligenz'];
-    const skillData = [];
-    const skillContainer = document.getElementById('skillContainer');
+    function reset() {
+        mapData = {};
+        mapCredits = 0;
+        xpCounter.innerText = "0";
+    }
 
     function createSkillRow(skillName, skillIndex) {
         const row = document.createElement('div');
