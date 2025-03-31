@@ -1,28 +1,65 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Popup Page</title>
+    <meta charset="UTF-8">
+    <title>Popup Page</title>
+    <script src="https://www.c-td.de/assets/custom/socket.io.js"></script>
 </head>
 <body>
 <h1>Popup</h1>
-<pre id="output">Token wird geladen...</pre>
 
 <script>
-  window.addEventListener("load", () => {
+    window.addEventListener("load", () => {
 
 
-    const authToken = window.opener?.sessionStorage.getItem("authToken");
-    const userToken = window.opener?.sessionStorage.getItem("userToken");
-    const serverURI = "wss://ctd.drochmann.de:8125";
+        const authToken = window.opener?.sessionStorage.getItem("authToken");
+        const userToken = window.opener?.sessionStorage.getItem("userToken");
+        const serverURI = "wss://ctd.drochmann.de:8125";
 
-    if (!userToken) {
-      console.log("Kein Token gefunden oder nicht über opener geöffnet.");
-      return;
-    }
-    console.log(authToken);
-    console.log(userToken);
-  });
+        if (!userToken || !authToken) {
+            console.log("Kein Token gefunden oder nicht über opener geöffnet.");
+            return;
+        }
+        console.log(authToken);
+        console.log(userToken);
+
+        const socket = io(serverURI, {
+            reconnection: true,
+            reconnectionDelayMax: 1000,
+            reconnectionAttempts: 0,
+            pingTimeout: 20000,
+            pingInterval: 25000,
+
+            auth: {
+                authToken: authToken
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            socket.disconnect();
+        });
+
+        socket.onAny((event, ...args) => {
+            if (event !== "ding" && event !== "dong") {
+                console.log(event,args);
+            }
+        });
+
+        socket.on("connect", () => {
+            socket.emit("authUser", {
+                token: userToken
+            });
+            console.log("Connected");
+        });
+
+        socket.on("authSuccess", () => {
+            socket.emit("setPage", {
+                page: "battlefield"
+            });
+            console.log("Auth success");
+        });
+
+    });
 </script>
 </body>
 </html>
