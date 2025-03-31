@@ -2,25 +2,83 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Popup Page</title>
+    <title>C-TD Upgrade Tool</title>
     <script src="https://www.c-td.de/assets/custom/socket.io.js"></script>
-</head>
-<body>
-<h1>Popup</h1>
-
-<script>
-    window.addEventListener("load", () => {
-
-
-        const authToken = window.opener?.sessionStorage.getItem("authToken");
-        const userToken = window.opener?.sessionStorage.getItem("userToken");
-        const serverURI = "wss://ctd.drochmann.de:8225";
-
-        if (!userToken || !authToken) {
-            console.log("Kein Token gefunden!");
-            return;
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #121212;
+            color: white;
         }
 
+        .tab-menu {
+            display: flex;
+            background-color: #222;
+        }
+
+        .tab-menu button {
+            flex: 1;
+            padding: 12px;
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab-menu button:hover,
+        .tab-menu button.active {
+            background-color: #444;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tab-menu">
+    <button class="tab-button active" onclick="showTab(0)">Tab 1</button>
+    <button class="tab-button" onclick="showTab(1)">Tab 2</button>
+    <button class="tab-button" onclick="showTab(2)">Tab 3</button>
+</div>
+
+<div class="tab-content active">
+    <h2>Inhalt Tab 1</h2>
+    <p>Hier steht der Inhalt des ersten Tabs.</p>
+</div>
+
+<div class="tab-content">
+    <h2>Inhalt Tab 2</h2>
+    <p>Hier steht der Inhalt des zweiten Tabs.</p>
+</div>
+
+<div class="tab-content">
+    <h2>Inhalt Tab 3</h2>
+    <p>Hier steht der Inhalt des dritten Tabs.</p>
+</div>
+
+<script>
+
+    function showTab(index) {
+        const buttons = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+
+        buttons[index].classList.add('active');
+        contents[index].classList.add('active');
+    }
+
+    function socket(serverURI,userToken,authToken) {
         const socket = io(serverURI, {
             reconnection: true,
             reconnectionDelayMax: 1000,
@@ -56,6 +114,20 @@
             });
             console.log("Auth success");
         });
+    }
+
+    window.addEventListener("load", () => {
+
+        const authToken = window.opener?.sessionStorage.getItem("authToken");
+        const userToken = window.opener?.sessionStorage.getItem("userToken");
+        const serverURI = "wss://ctd.drochmann.de:8225";
+
+        if (!userToken || !authToken) {
+            console.log("Kein Token gefunden!");
+            return;
+        }
+
+        socket(serverURI,userToken,authToken);
 
     });
 </script>
