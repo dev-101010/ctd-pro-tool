@@ -106,42 +106,64 @@
         .box.active {
             background-color: limegreen;
         }
+
+        #loadingMessage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-family: sans-serif;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
 
-<div class="tab-menu">
-    <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
-    <button class="tab-button" onclick="showTab(1)">Tab 2</button>
-    <button class="tab-button" onclick="showTab(2)">Tab 3</button>
+<div id="loadingMessage">
+    <p>Lade Daten, bitte warten...</p>
 </div>
 
-<div class="tab-content active">
-    <div class="header-bar">
-        <div class="xp-display">Credits: <span id="xpCounter">0</span>/<span id="xpUpgrade">0</span></div>
-        <div class="controls">
-            <label for="profileSelect">Profiles</label>
-            <select id="profileSelect">
-                <!-- Dynamisch befüllt -->
-            </select>
-            <button onclick="newProfile()">➕</button>
-            <button onclick="saveProfile()">💾</button>
+<div id="mainContent" style="display: none;">
+
+    <div class="tab-menu">
+        <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
+        <button class="tab-button" onclick="showTab(1)">Tab 2</button>
+        <button class="tab-button" onclick="showTab(2)">Tab 3</button>
+    </div>
+
+    <div class="tab-content active">
+        <div class="header-bar">
+            <div class="xp-display">Credits: <span id="xpCounter">0</span>/<span id="xpUpgrade">0</span></div>
+            <div class="controls">
+                <label for="profileSelect">Profiles</label>
+                <select id="profileSelect">
+                    <!-- Dynamisch befüllt -->
+                </select>
+                <button onclick="newProfile()">➕</button>
+                <button onclick="saveProfile()">💾</button>
+            </div>
+        </div>
+
+        <div class="skill-container" id="skillContainer">
+            <!-- Dynamisch generierte Skills -->
         </div>
     </div>
 
-    <div class="skill-container" id="skillContainer">
-        <!-- Dynamisch generierte Skills -->
+    <div class="tab-content">
+        <h2>Inhalt Tab 2</h2>
+        <p>Hier steht der Inhalt des zweiten Tabs.</p>
     </div>
-</div>
 
-<div class="tab-content">
-    <h2>Inhalt Tab 2</h2>
-    <p>Hier steht der Inhalt des zweiten Tabs.</p>
-</div>
+    <div class="tab-content">
+        <h2>Inhalt Tab 3</h2>
+        <p>Hier steht der Inhalt des dritten Tabs.</p>
+    </div>
 
-<div class="tab-content">
-    <h2>Inhalt Tab 3</h2>
-    <p>Hier steht der Inhalt des dritten Tabs.</p>
 </div>
 
 <script>
@@ -150,13 +172,17 @@
     let userData = {};
     let mapData = {};
     let towerMainValues = {};
+    let towerStatsData = {};
+    let towerUpgradeData = {};
 
     let mapCredits = 0;
     let openCredits = 0;
-    let neededCredits = 5;
+    let neededCredits = 0;
 
-    const skills = ['Stärke', 'Geschick', 'Intelligenz'];
     const skillData = [];
+
+    const loadingMessage = document.getElementById("loadingMessage");
+    const mainContent = document.getElementById("mainContent");
     const skillContainer = document.getElementById('skillContainer');
     const xpCounter = document.getElementById('xpCounter');
     const xpUpgrade = document.getElementById('xpUpgrade');
@@ -172,7 +198,7 @@
         contents[index].classList.add('active');
     }
 
-    function socket(serverURI,userToken,authToken) {
+    function socket(serverURI, userToken, authToken) {
         const socket = io(serverURI, {
             reconnection: true,
             reconnectionDelayMax: 1000,
@@ -191,7 +217,7 @@
 
         socket.onAny((event, ...args) => {
             if (event !== "ding" && event !== "dong") {
-                console.log(event,args);
+                console.log(event, args);
             }
         });
 
@@ -207,51 +233,82 @@
                 page: "battlefield"
             });
             console.log("Auth success");
+            setTimeout(() => {
+                loadingMessage.style.display = "none";
+                mainContent.style.display = "block";
+            }, 500);
         });
 
-        socket.on("updateUserDetails", (data,act) => {
+        socket.on("updateUserDetails", (data, act) => {
             act();
             userData = data;
         });
 
-        socket.on("mapLoaded", (data,act) => {
+        socket.on("mapLoaded", (data, act) => {
             act();
-            mapData = data.data;
+            reset();
+            mapData = data;
         });
 
-        socket.on("mapClosed", (data,act) => {
+        socket.on("mapClosed", (data, act) => {
             act();
             reset();
         });
 
-        socket.on("mapCreditsChanged", (data,act) => {
+        socket.on("mapCreditsChanged", (data, act) => {
             act();
             mapCredits = data.amount;
             updateCredits();
         });
 
-        socket.on("towerMainValuesChanged", (data,act) => {
+        socket.on("towerMainValuesChanged", (data, act) => {
             act();
-            if(userData.uid === data.user.uid) {
+            if (userData.user.uid === data.user.uid) {
                 towerMainValues = data.data;
                 updateCredits();
             }
         });
+
+        socket.on("towerStatsValuesChanged", (data, act) => {
+            act();
+            if (userData.user.uid === data.user.uid) {
+                towerStatsData = data.statsData;
+                towerUpgradeData = data.upgradeData;
+                updateStats();
+            }
+        });
+    }
+
+    function updateStats() {
+        towerUpgradeData.forEach((data, idx) => {
+            const name = data.name;
+            createSkillRow(name, idx);
+        });
     }
 
     function updateCredits() {
-        openCredits = mapCredits - (towerMainValues.creditsUsed || 0);
+        const creditsUsed = towerMainValues.creditsUsed ?? 0;
+        openCredits = mapCredits - creditsUsed;
         xpCounter.innerHTML = `${openCredits}`;
-        neededCredits = (mapData.map?.towerUpgradeCost || 5) * (towerMainValues.upgradeMulti || 1);
+        const cost = mapData.map?.towerUpgradeCost ?? 0;
+        const multi = towerMainValues.upgradeMulti ?? 1;
+        neededCredits = cost * multi;
         xpUpgrade.innerHTML = `${neededCredits}`;
     }
 
     function reset() {
+        //let userData = {}; userdata not change by map change
         mapData = {};
+        towerMainValues = {};
+        towerStatsData = [];
+        towerUpgradeData = [];
+
         mapCredits = 0;
         openCredits = 0;
+        neededCredits = 0;
 
         updateCredits();
+        updateStats()
     }
 
     function createSkillRow(skillName, skillIndex) {
@@ -285,11 +342,6 @@
         skillContainer.appendChild(row);
     }
 
-    // Initiales Rendering
-    skills.forEach((name, idx) => {
-        createSkillRow(name, idx);
-    });
-
     function newProfile() {
         const name = prompt("Profilname?");
         if (name) {
@@ -306,16 +358,41 @@
 
     window.addEventListener("load", () => {
 
-        const authToken = window.opener?.sessionStorage.getItem("authToken");
-        const userToken = window.opener?.sessionStorage.getItem("userToken");
-        const serverURI = "wss://ctd.drochmann.de:8225";
+        let authToken = "";
+        let userToken = "";
+        let domain = "";
 
-        if (!userToken || !authToken) {
-            console.log("Kein Token gefunden!");
+        try {
+            authToken = window.opener?.sessionStorage.getItem("authToken");
+            userToken = window.opener?.sessionStorage.getItem("userToken");
+            domain = window.opener?.location.hostname;
+        } catch (e) {
+            console.error("Zugriff auf opener-Daten fehlgeschlagen (vermutlich Cross-Origin):", e);
             return;
         }
 
-        socket(serverURI,userToken,authToken);
+        if (!userToken || !authToken) {
+            console.error("Kein Token gefunden!");
+            return;
+        }
+
+        let serverURI = "";
+
+        switch (domain) {
+            case "www.c-td.de":
+                serverURI = "wss://ctd.drochmann.de:8125";
+                break;
+            case "ctddev.shimly-dev.de":
+                serverURI = "wss://ctd.drochmann.de:8225";
+                break;
+        }
+
+        if (!serverURI) {
+            console.error("Unbekannte Domain!");
+            return;
+        }
+
+        socket(serverURI, userToken, authToken);
 
     });
 </script>
