@@ -12,6 +12,20 @@
             color: white;
         }
 
+        .map-info-bar {
+            background-color: #1a1a1a;
+            color: #ccc;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .info-block {
+            min-width: 120px;
+        }
+
         .tab-menu {
             display: flex;
             background-color: #222;
@@ -120,6 +134,16 @@
             font-family: sans-serif;
             z-index: 9999;
         }
+
+        #toggleStartStop {
+            border-radius: 6px;
+        }
+
+        #toggleStartStop:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
     </style>
 </head>
 <body>
@@ -130,6 +154,13 @@
 
 <div id="mainContent" style="display: none;">
 
+    <div id="mapInfoBar" class="map-info-bar">
+        <span class="info-block">User: <span id="userName">–</span></span>
+        <span class="info-block">Map: <span id="mapName">–</span></span>
+        <span class="info-block">Tower: <span id="towerName">–</span></span>
+        <span class="info-block">Level: <span id="towerLevel">–</span></span>
+    </div>
+
     <div class="tab-menu">
         <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
         <button class="tab-button" onclick="showTab(1)">Tab 2</button>
@@ -138,6 +169,7 @@
 
     <div class="tab-content active">
         <div class="header-bar">
+            <button id="toggleStartStop" onclick="toggleButtonState()" style="background-color: green;">Start</button>
             <div class="xp-display">Credits: <span id="xpCounter">0</span>/<span id="xpUpgrade">0</span></div>
             <div class="controls">
                 <label for="profileSelect">Profiles</label>
@@ -168,6 +200,8 @@
 
 <script>
 
+    let socket = null;
+
     let userData = {};
     let mapData = {};
     let towerMainValues = {};
@@ -179,6 +213,9 @@
     let neededCredits = 0;
 
     let skillBuilded = false;
+    let isRunning = false;
+    let hasMap = false;
+    let hasTower = false;
 
     const skillData = [];
 
@@ -199,8 +236,8 @@
         contents[index].classList.add('active');
     }
 
-    function socket(serverURI, userToken, authToken) {
-        const socket = io(serverURI, {
+    function startSocket(serverURI, userToken, authToken) {
+        socket = io(serverURI, {
             reconnection: true,
             reconnectionDelayMax: 1000,
             reconnectionAttempts: 0,
@@ -247,13 +284,15 @@
 
         socket.on("mapLoaded", (data, act) => {
             act();
-            reset();
+            resetMap();
             mapData = data;
+            hasMap = true;
+            updateMapInfo();
         });
 
         socket.on("mapClosed", (data, act) => {
             act();
-            reset();
+            resetMap();
         });
 
         socket.on("mapCreditsChanged", (data, act) => {
@@ -267,13 +306,14 @@
             if (userData.user.uid === data.user.uid) {
                 towerMainValues = data.data;
                 updateCredits();
+                updateMapInfo();
             }
         });
 
         socket.on("removeTower", (data, act) => {
             act();
             if (userData.user.uid === data.user.uid) {
-                reset();
+                resetTower();
             }
         });
 
@@ -282,6 +322,7 @@
             if (userData.user.uid === data.user.uid) {
                 towerMainValues = data.data;
                 updateCredits();
+                updateMapInfo();
             }
         });
 
@@ -290,8 +331,8 @@
             if (userData.user.uid === data.user.uid) {
                 towerStatsData = data.statsData;
                 towerUpgradeData = data.upgradeData;
-                if(!skillBuilded)
-                    fillSkillContainer();
+                if(!skillBuilded) fillSkillContainer();
+                setToggleButtonEnabled(true);
             }
         });
     }
@@ -306,21 +347,34 @@
         xpUpgrade.innerHTML = `${neededCredits}`;
     }
 
-    function reset() {
+    function resetTower() {
         //let userData = {}; userdata not change by map change
-        mapData = {};
+
         towerMainValues = {};
         towerStatsData = [];
         towerUpgradeData = [];
+
+        skillBuilded = false;
+        hasTower = false;
+
+        updateCredits();
+        clearSkillContainer();
+        updateMapInfo();
+        setButtonState(false);
+        setToggleButtonEnabled(false);
+    }
+
+    function resetMap() {
+        mapData = {};
 
         mapCredits = 0;
         openCredits = 0;
         neededCredits = 0;
 
-        skillBuilded = false;
+        hasMap = false;
 
-        updateCredits();
-        clearSkillContainer()
+        updateMapInfo();
+        resetTower();
     }
 
     function fillSkillContainer() {
@@ -359,6 +413,7 @@
                 // Nur eine Box pro Spalte aktiv
                 document.querySelectorAll(`.box[data-index="${i}"]`).forEach(b => b.classList.remove('active'));
                 box.classList.add('active');
+                skillData[i] = skillName;
             });
 
             boxes.appendChild(box);
@@ -382,6 +437,82 @@
         // Hier kannst du später die aktive Verteilung als JSON speichern oder ähnliches
     }
 
+    function updateMapInfo() {
+        const userName = userData?.user?.displayname;
+        const mapName = mapData?.map?.name;
+        const towerName = towerMainValues?.name;
+        const towerLevel = towerMainValues?.level;
+        document.getElementById("userName").textContent = userName ?? "–";
+        document.getElementById("mapName").textContent = mapName ?? "–";
+        document.getElementById("towerName").textContent = towerName ?? "–";
+        document.getElementById("towerLevel").textContent = (towerLevel ?? "–");
+    }
+
+    function toggleButtonState() {
+        isRunning = !isRunning;
+        const btn = document.getElementById("toggleStartStop");
+        if (isRunning) {
+            btn.textContent = "Stop";
+            btn.style.backgroundColor = "red";
+        } else {
+            btn.textContent = "Start";
+            btn.style.backgroundColor = "green";
+        }
+
+        if(isRunning) startLoop(); else stopLoop();
+    }
+
+    function setToggleButtonEnabled(state) {
+        const btn = document.getElementById("toggleStartStop");
+        btn.disabled = !state;
+    }
+
+    function setButtonState(running) {
+        if (isRunning !== running) {
+            toggleButtonState();
+        }
+    }
+
+    function update() {
+        if(openCredits <= 0 || neededCredits <= 0 || openCredits < neededCredits ) return;
+        const skill = skillData.splice(0,1);
+        const name = skill[0];
+        if(typeof name === 'string' && name) {
+            socket.emit('upgradeTower', {name});
+            syncVisualWithSkillData(skillData);
+        }
+    }
+
+    let loopInterval = null;
+
+    function startLoop() {
+        if (loopInterval !== null) return;
+        loopInterval = setInterval(update, 1000);
+    }
+
+    function stopLoop() {
+        clearInterval(loopInterval);
+        loopInterval = null;
+    }
+
+    function syncVisualWithSkillData(skillArray) {
+        for (let i = 0; i < skillArray.length; i++) {
+            const skillName = skillArray[i];
+
+            const boxesInColumn = document.querySelectorAll(`.box[data-index="${i}"]`);
+
+            boxesInColumn.forEach(box => {
+                const skillIdx = Number(box.dataset.skill);
+                const name = towerUpgradeData[skillIdx]?.name;
+                if (name === skillName) {
+                    box.classList.add('active');
+                } else {
+                    box.classList.remove('active');
+                }
+            });
+        }
+    }
+
     window.addEventListener("load", () => {
 
         let authToken = "";
@@ -393,7 +524,7 @@
             userToken = window.opener?.sessionStorage.getItem("userToken");
             domain = window.opener?.location.hostname;
         } catch (e) {
-            console.error("Zugriff auf opener-Daten fehlgeschlagen (vermutlich Cross-Origin):", e);
+            console.error("Zugriff auf Daten fehlgeschlagen!");
             return;
         }
 
@@ -418,7 +549,7 @@
             return;
         }
 
-        socket(serverURI, userToken, authToken);
+        startSocket(serverURI, userToken, authToken);
 
     });
 </script>
