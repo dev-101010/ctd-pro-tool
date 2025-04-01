@@ -23,7 +23,7 @@
         button.style.margin = "5px";
         button.addEventListener("click", async () => {
 
-            const popupUrl = "https://raw.githubusercontent.com/dev-101010/ctd-upgrade-tool/refs/heads/master/popup.html";
+            const popupUrl = "https://dev-101010.de/ctdt/popup.html";
 
             const bust = Date.now();
             const response = await fetch(`${popupUrl}?v=${bust}`, {
