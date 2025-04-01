@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         CTD Upgrade Tool
-// @namespace    https://github.com/dev-101010/ctd-upgrade-tool
+// @namespace    https://dev-101010.de/ctdt/script.user.js
 // @version      0.1
 // @description  CTD Tower upgrade
 // @author       dev-101010
