@@ -256,6 +256,7 @@
                     <!-- Dynamisch befüllt -->
                 </select>
                 <button id="newProfileButton" class="profileButton" onclick="newProfile()">➕</button>
+                <button id="deleteProfileButton" class="profileButton" onclick="deleteProfile()">🗑️</button>
                 <button id="loadProfileButton" class="profileButton" onclick="loadProfile()">📂</button>
                 <button id="saveProfileButton" class="profileButton" onclick="saveProfile()">💾</button>
             </div>
@@ -615,6 +616,27 @@
         profileSelect.value = name;
 
         showToast("Profil erstellt.","success");
+    }
+
+    function deleteProfile() {
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            showToast("Bitte wähle ein Profil zum Löschen aus.","info");
+            return;
+        }
+
+        if (!confirm(`Möchtest du das Profil "${selectedName}" wirklich löschen?`)) {
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        delete profiles[selectedName];
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        loadProfiles(); // Aktualisiere das Select-Feld
+        showToast("Profil gelöscht.","success");
     }
 
     function updateMapInfo() {
