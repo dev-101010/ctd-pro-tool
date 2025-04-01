@@ -63,7 +63,7 @@
             margin-bottom: 20px;
         }
 
-        .xp-display {
+        .coinsDisplay {
             font-size: 18px;
         }
 
@@ -114,6 +114,7 @@
             background-color: #444;
             border: 1px solid #666;
             cursor: pointer;
+            user-select: none;
         }
 
         /*noinspection CssUnusedSymbol*/
@@ -139,7 +140,33 @@
             border-radius: 6px;
         }
 
+        #toggleStartStop:hover {
+            scale: 1.2;
+        }
+
+        #toggleStartStop:active {
+            scale: 0.8;
+        }
+
         #toggleStartStop:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        .profileButton {
+            border-radius: 6px;
+        }
+
+        .profileButton:hover {
+            scale: 1.2;
+        }
+
+        .profileButton:active {
+            scale: 0.8;
+        }
+
+        .profileButton:disabled {
             opacity: 0.4;
             cursor: not-allowed;
             filter: grayscale(50%);
@@ -170,14 +197,15 @@
     <div class="tab-content active">
         <div class="header-bar">
             <button id="toggleStartStop" onclick="toggleButtonState()" style="background-color: green;">Start</button>
-            <div class="xp-display">Credits: <span id="xpCounter">0</span>/<span id="xpUpgrade">0</span></div>
+            <div class="coinsDisplay">Credits: <span id="openCredits">0</span>/<span id="neededCredits">0</span></div>
             <div class="controls">
                 <label for="profileSelect">Profiles</label>
                 <select id="profileSelect">
                     <!-- Dynamisch befüllt -->
                 </select>
-                <button onclick="newProfile()">➕</button>
-                <button onclick="saveProfile()">💾</button>
+                <button id="newProfileButton" class="profileButton" onclick="newProfile()">➕</button>
+                <button id="loadProfileButton" class="profileButton" onclick="loadProfile()">📂</button>
+                <button id="saveProfileButton" class="profileButton" onclick="saveProfile()">💾</button>
             </div>
         </div>
 
@@ -202,6 +230,9 @@
 
     let socket = null;
 
+    let isMouseDown = false;
+    let dragMode = null;
+
     let userData = {};
     let mapData = {};
     let towerMainValues = {};
@@ -222,8 +253,8 @@
     const loadingMessage = document.getElementById("loadingMessage");
     const mainContent = document.getElementById("mainContent");
     const skillContainer = document.getElementById('skillContainer');
-    const xpCounter = document.getElementById('xpCounter');
-    const xpUpgrade = document.getElementById('xpUpgrade');
+    const openCreditsEl = document.getElementById('openCredits');
+    const neededCreditsEl = document.getElementById('neededCredits');
 
     function showTab(index) {
         const buttons = document.querySelectorAll('.tab-button');
@@ -332,7 +363,9 @@
                 towerStatsData = data.statsData;
                 towerUpgradeData = data.upgradeData;
                 if(!skillBuilded) fillSkillContainer();
+                hasTower = true;
                 setToggleButtonEnabled(true);
+                setProfileButtonsEnabled(true);
             }
         });
     }
@@ -340,11 +373,11 @@
     function updateCredits() {
         const creditsUsed = towerMainValues.creditsUsed ?? 0;
         openCredits = mapCredits - creditsUsed;
-        xpCounter.innerHTML = `${openCredits}`;
+        openCreditsEl.innerHTML = `${openCredits}`;
         const cost = mapData.map?.towerUpgradeCost ?? 0;
         const multi = towerMainValues.upgradeMulti ?? 1;
         neededCredits = cost * multi;
-        xpUpgrade.innerHTML = `${neededCredits}`;
+        neededCreditsEl.innerHTML = `${neededCredits}`;
     }
 
     function resetTower() {
@@ -362,6 +395,7 @@
         updateMapInfo();
         setButtonState(false);
         setToggleButtonEnabled(false);
+        setProfileButtonsEnabled(false);
     }
 
     function resetMap() {
@@ -406,14 +440,41 @@
         for (let i = 0; i < 100; i++) {
             const box = document.createElement('div');
             box.className = 'box';
+            box.setAttribute('draggable', 'false');
             box.dataset.index = i;
             box.dataset.skill = skillIndex;
 
-            box.addEventListener('click', () => {
-                // Nur eine Box pro Spalte aktiv
-                document.querySelectorAll(`.box[data-index="${i}"]`).forEach(b => b.classList.remove('active'));
-                box.classList.add('active');
-                skillData[i] = skillName;
+            box.addEventListener('mousedown', () => {
+
+                const column = Number(box.dataset.index);
+                const row = Number(box.dataset.skill);
+                const name = towerUpgradeData[row]?.name;
+
+                if (skillData[column] === name) {
+                    dragMode = "remove";
+                    skillData[column] = null;
+                } else {
+                    dragMode = "set";
+                    skillData[column] = name;
+                }
+
+                syncVisualWithSkillData(skillData);
+            });
+
+            box.addEventListener('mouseenter', () => {
+                if (!isMouseDown || !dragMode) return;
+
+                const column = Number(box.dataset.index);
+                const row = Number(box.dataset.skill);
+                const name = towerUpgradeData[row]?.name;
+
+                if (dragMode === "set" && skillData[column] !== name) {
+                    skillData[column] = name;
+                    syncVisualWithSkillData(skillData);
+                } else if (dragMode === "remove" && skillData[column] === name) {
+                    skillData[column] = null;
+                    syncVisualWithSkillData(skillData);
+                }
             });
 
             boxes.appendChild(box);
@@ -423,18 +484,80 @@
         skillContainer.appendChild(row);
     }
 
-    function newProfile() {
-        const name = prompt("Profilname?");
-        if (name) {
-            const option = document.createElement('option');
+    function loadProfiles() {
+        const profileSelect = document.getElementById('profileSelect');
+        profileSelect.innerHTML = '';
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        Object.keys(profiles).forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
             option.textContent = name;
-            document.getElementById('profileSelect').appendChild(option);
-        }
+            profileSelect.appendChild(option);
+        });
     }
 
     function saveProfile() {
-        alert("Profil gespeichert (Demo-Funktion).");
-        // Hier kannst du später die aktive Verteilung als JSON speichern oder ähnliches
+        if(!hasTower) return;
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            alert("Bitte wähle ein Profil aus oder erstelle ein neues.");
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        profiles[selectedName] = skillData;
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        alert("Profil gespeichert.");
+    }
+
+    function loadProfile() {
+        if(!hasTower) return;
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            alert("Bitte wähle ein Profil aus.");
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        const profile = profiles[selectedName];
+
+        if (Array.isArray(profile)) {
+            for (let i = 0; i < skillData.length; i++) skillData[i] = null;
+            profile.forEach((val, i) => {
+                skillData[i] = val || null;
+            });
+            syncVisualWithSkillData(skillData);
+        } else {
+            alert("Fehler beim Laden des Profils.");
+        }
+    }
+
+    function newProfile() {
+        const name = prompt("Neuer Profilname:");
+        if (!name) return;
+
+        const profileSelect = document.getElementById("profileSelect");
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+
+        if (profiles[name]) {
+            alert("Profilname existiert bereits.");
+            return;
+        }
+
+        profiles[name] = [];
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        const option = document.createElement('option');
+        option.textContent = name;
+        option.value = name;
+        profileSelect.appendChild(option);
+        profileSelect.value = name;
     }
 
     function updateMapInfo() {
@@ -467,6 +590,13 @@
         btn.disabled = !state;
     }
 
+    function setProfileButtonsEnabled(state) {
+        const btn1 = document.getElementById("loadProfileButton");
+        const btn2 = document.getElementById("saveProfileButton");
+        btn1.disabled = !state;
+        btn2.disabled = !state;
+    }
+
     function setButtonState(running) {
         if (isRunning !== running) {
             toggleButtonState();
@@ -478,9 +608,10 @@
         const skill = skillData.splice(0,1);
         const name = skill[0];
         if(typeof name === 'string' && name) {
+            // noinspection JSUnresolvedReference
             socket.emit('upgradeTower', {name});
-            syncVisualWithSkillData(skillData);
         }
+        syncVisualWithSkillData(skillData);
     }
 
     let loopInterval = null;
@@ -496,22 +627,31 @@
     }
 
     function syncVisualWithSkillData(skillArray) {
-        for (let i = 0; i < skillArray.length; i++) {
-            const skillName = skillArray[i];
+        const allBoxes = document.querySelectorAll('.box');
 
-            const boxesInColumn = document.querySelectorAll(`.box[data-index="${i}"]`);
+        allBoxes.forEach(box => {
+            const index = Number(box.dataset.index); // Spalte
+            const skillIdx = Number(box.dataset.skill); // Zeile
+            const expectedSkillName = skillArray[index];
 
-            boxesInColumn.forEach(box => {
-                const skillIdx = Number(box.dataset.skill);
-                const name = towerUpgradeData[skillIdx]?.name;
-                if (name === skillName) {
-                    box.classList.add('active');
-                } else {
-                    box.classList.remove('active');
-                }
-            });
-        }
+            const actualName = towerUpgradeData?.[skillIdx]?.name;
+
+            if (expectedSkillName && actualName === expectedSkillName) {
+                box.classList.add('active');
+            } else {
+                box.classList.remove('active');
+            }
+        });
     }
+
+    document.addEventListener('mousedown', () => {
+        isMouseDown = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        dragMode = null;
+    });
 
     window.addEventListener("load", () => {
 
@@ -548,6 +688,8 @@
             console.error("Unbekannte Domain!");
             return;
         }
+
+        loadProfiles();
 
         startSocket(serverURI, userToken, authToken);
 
