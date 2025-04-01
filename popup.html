@@ -171,6 +171,62 @@
             cursor: not-allowed;
             filter: grayscale(50%);
         }
+
+        #toastContainer {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast {
+            background-color: #222;
+            color: #ccc;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            min-width: 160px;
+            max-width: 240px;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: toast-in 0.2s ease-out forwards;
+            pointer-events: auto;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.success {
+            border-left: 3px solid limegreen;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.error {
+            border-left: 3px solid crimson;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.info {
+            border-left: 3px solid dodgerblue;
+        }
+
+        @keyframes toast-in {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toast-out {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
     </style>
 </head>
 <body>
@@ -225,6 +281,8 @@
     </div>
 
 </div>
+
+<div id="toastContainer"></div>
 
 <script>
 
@@ -503,7 +561,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            alert("Bitte wähle ein Profil aus oder erstelle ein neues.");
+            showToast("Bitte wähle ein Profil aus oder erstelle ein neues.","info");
             return;
         }
 
@@ -511,7 +569,7 @@
         profiles[selectedName] = skillData;
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
-        alert("Profil gespeichert.");
+        showToast("Profil gespeichert.","success");
     }
 
     function loadProfile() {
@@ -520,7 +578,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            alert("Bitte wähle ein Profil aus.");
+            showToast("Bitte wähle ein Profil aus.","info");
             return;
         }
 
@@ -533,8 +591,9 @@
                 skillData[i] = val || null;
             });
             syncVisualWithSkillData(skillData);
+            showToast("Profil geladen.","success");
         } else {
-            alert("Fehler beim Laden des Profils.");
+            showToast("Fehler beim Laden des Profils.","error");
         }
     }
 
@@ -546,7 +605,7 @@
         const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
 
         if (profiles[name]) {
-            alert("Profilname existiert bereits.");
+            showToast("Profilname existiert bereits.","error");
             return;
         }
 
@@ -558,6 +617,8 @@
         option.value = name;
         profileSelect.appendChild(option);
         profileSelect.value = name;
+
+        showToast("Profil erstellt.","success");
     }
 
     function updateMapInfo() {
@@ -642,6 +703,20 @@
                 box.classList.remove('active');
             }
         });
+    }
+
+    function showToast(message, type = "info") {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'toast-out 0.3s ease-in forwards';
+            toast.addEventListener('animationend', () => toast.remove());
+        }, 2000);
     }
 
     document.addEventListener('mousedown', () => {
