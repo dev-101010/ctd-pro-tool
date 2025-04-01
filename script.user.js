@@ -14,8 +14,8 @@
 
     window.addEventListener("load", () => {
 
-        const gameContainerUpgrade = document.getElementById("gameContainerUpgrade");
-        if (!gameContainerUpgrade) return;
+        const battleButtonContainer = document.getElementById("battleButtonContainer");
+        if (!battleButtonContainer) return;
 
         const button = document.createElement("button");
         button.textContent = "Open Upgrade Tool";
@@ -39,7 +39,8 @@
             window.open(blobUrl, "_blank", "width=800,height=400");
 
         });
-        gameContainerUpgrade.appendChild(button);
+
+        battleButtonContainer.appendChild(button); // fallback: anhängen
 
     });
 
