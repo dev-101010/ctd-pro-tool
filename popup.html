@@ -178,6 +178,8 @@
     let openCredits = 0;
     let neededCredits = 0;
 
+    let skillBuilded = false;
+
     const skillData = [];
 
     const loadingMessage = document.getElementById("loadingMessage");
@@ -260,6 +262,21 @@
             updateCredits();
         });
 
+        socket.on("userTowerPlaced", (data, act) => {
+            act();
+            if (userData.user.uid === data.user.uid) {
+                towerMainValues = data.data;
+                updateCredits();
+            }
+        });
+
+        socket.on("removeTower", (data, act) => {
+            act();
+            if (userData.user.uid === data.user.uid) {
+                reset();
+            }
+        });
+
         socket.on("towerMainValuesChanged", (data, act) => {
             act();
             if (userData.user.uid === data.user.uid) {
@@ -273,15 +290,9 @@
             if (userData.user.uid === data.user.uid) {
                 towerStatsData = data.statsData;
                 towerUpgradeData = data.upgradeData;
-                updateStats();
+                if(!skillBuilded)
+                    fillSkillContainer();
             }
-        });
-    }
-
-    function updateStats() {
-        towerUpgradeData.forEach((data, idx) => {
-            const name = data.name;
-            createSkillRow(name, idx);
         });
     }
 
@@ -306,8 +317,24 @@
         openCredits = 0;
         neededCredits = 0;
 
+        skillBuilded = false;
+
         updateCredits();
-        updateStats()
+        clearSkillContainer()
+    }
+
+    function fillSkillContainer() {
+        skillBuilded = true;
+        towerUpgradeData.forEach((data, idx) => {
+            const name = data.name;
+            createSkillRow(name, idx);
+        });
+    }
+    
+    function clearSkillContainer() {
+        while (skillContainer.firstChild) {
+            skillContainer.removeChild(skillContainer.firstChild);
+        }
     }
 
     function createSkillRow(skillName, skillIndex) {
