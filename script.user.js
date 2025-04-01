@@ -40,7 +40,7 @@
 
         });
 
-        battleButtonContainer.appendChild(button); // fallback: anhängen
+        battleButtonContainer.appendChild(button);
 
     });
 
