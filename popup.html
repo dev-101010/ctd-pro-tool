@@ -22,6 +22,7 @@
             gap: 40px;
             flex-wrap: wrap;
         }
+
         .info-block {
             min-width: 120px;
         }
@@ -142,7 +143,7 @@
         }
 
         #toggleStartStop {
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         #toggleStartStop:hover {
@@ -161,8 +162,6 @@
 
         .profileButton {
             border-radius: 4px;
-            font-size: 14px;
-            padding: 4px 6px;
         }
 
         .profileButton:hover {
@@ -179,6 +178,31 @@
             filter: grayscale(50%);
         }
 
+        .miniSkillButton {
+            border-radius: 4px;
+            font-size: 11px;
+            padding: 2px 4px;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .miniSkillButton:hover {
+            scale: 1.1;
+        }
+
+        .miniSkillButton:active {
+            scale: 0.9;
+        }
+
+        .miniSkillButton:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
         #toastContainer {
             position: fixed;
             top: 12px;
@@ -190,6 +214,39 @@
             pointer-events: none;
         }
 
+        .uidInput {
+            width: 70px; /* oder 80px je nach UID-Länge */
+            padding: 4px 6px;
+            font-size: 14px;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+
+        .uidInput:focus {
+            outline: none;
+            border-color: #777;
+        }
+
+        .statCard {
+            padding: 6px 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .statCard.even {
+            background-color: #1a1a1a;
+        }
+
+        .statCard.odd {
+            background-color: #222;
+        }
+
         /*noinspection CssUnusedSymbol*/
         .toast {
             background-color: #222;
@@ -197,7 +254,7 @@
             font-size: 14px;
             padding: 6px 12px;
             border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
             min-width: 160px;
             max-width: 240px;
             opacity: 0;
@@ -263,17 +320,26 @@
 
     <div class="tab-content active">
         <div class="header-bar">
-            <button id="toggleStartStop" onclick="toggleButtonState()" style="background-color: green;">Start</button>
+            <div class="controls">
+                <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()" style="background-color: green;">Start</button>
+                <button id="randomButton" class="profileButton" title="Zufällig füllen" onclick="randomizeSkillData()">🎲</button>
+            </div>
             <div>Credits: <span id="openCredits">0</span>/<span id="neededCredits">0</span></div>
             <div class="controls">
                 <label for="profileSelect">Profiles:</label>
-                <select id="profileSelect">
+                <select title="Profil auswählen" id="profileSelect">
                     <!-- Dynamisch befüllt -->
                 </select>
-                <button id="newProfileButton" class="profileButton" onclick="newProfile()">➕</button>
-                <button id="deleteProfileButton" class="profileButton" onclick="deleteProfile()">🗑️</button>
-                <button id="loadProfileButton" class="profileButton" onclick="loadProfile()">📂</button>
-                <button id="saveProfileButton" class="profileButton" onclick="saveProfile()">💾</button>
+                <button id="newProfileButton" title="Profil erstellen" class="profileButton" onclick="newProfile()">➕
+                </button>
+                <button id="deleteProfileButton" title="Profil löschen" class="profileButton" onclick="deleteProfile()">
+                    🗑️
+                </button>
+                <button id="loadProfileButton" title="Profil laden" class="profileButton" onclick="loadProfile()">📂
+                </button>
+                <button id="saveProfileButton" title="Profil speichern" class="profileButton" onclick="saveProfile()">
+                    💾
+                </button>
             </div>
         </div>
 
@@ -287,8 +353,22 @@
     </div>
 
     <div class="tab-content">
-        <h2>Inhalt Tab 3</h2>
-        <p>Hier steht der Inhalt des dritten Tabs.</p>
+        <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
+            <div class="controls">
+                <label for="uidInput">User-ID:</label>
+                <input type="text" id="uidInput" class="uidInput" placeholder="UID">
+                <button onclick="setCustomUid()" class="profileButton">✔️</button>
+            </div>
+            <div class="controls">
+                <button onclick="triggerStatisticsRefresh()" class="profileButton">🔁</button>
+                <label style="display: flex; align-items: center; gap: 4px;">
+                    <input type="checkbox" onclick="statisticsAutoRefresh()" id="autoRefreshCheckbox">
+                    Auto-Refresh
+                </label>
+            </div>
+        </div>
+
+        <div id="statisticsTableContainer"></div>
     </div>
 
 </div>
@@ -298,6 +378,7 @@
 <script>
 
     let socket = null;
+    const MAX_SKILL_BOXES = 100;
 
     let isMouseDown = false;
     let dragMode = null;
@@ -317,6 +398,9 @@
     let hasMap = false;
     let hasTower = false;
 
+    let statisticsUid = null;
+    let autoRefreshInterval = null;
+
     const skillData = [];
 
     const loadingMessage = document.getElementById("loadingMessage");
@@ -335,7 +419,7 @@
         buttons[index].classList.add('active');
         contents[index].classList.add('active');
 
-        if(index === 2) loadStatistics();
+        if (index === 2) triggerStatisticsRefresh();
     }
 
     function startSocket(serverURI, userToken, authToken) {
@@ -382,6 +466,13 @@
         socket.on("updateUserDetails", (data, act) => {
             act();
             userData = data;
+
+            // UID setzen, wenn input leer
+            const uidInput = document.getElementById("uidInput");
+            if (uidInput && uidInput.value.trim() === "") {
+                uidInput.value = data.user.uid ?? "";
+                statisticsUid = data.user.uid ?? null;
+            }
         });
 
         socket.on("mapLoaded", (data, act) => {
@@ -433,23 +524,13 @@
             if (userData.user.uid === data.user.uid) {
                 towerStatsData = data.statsData;
                 towerUpgradeData = data.upgradeData;
-                if(!skillBuilded) fillSkillContainer();
+                if (!skillBuilded) fillSkillContainer();
                 hasTower = true;
                 setToggleButtonEnabled(true);
                 setProfileButtonsEnabled(true);
                 renderStatsTable();
             }
         });
-    }
-
-    function loadStatistics() {
-        const towerId = towerMainValues?.uid;
-        if(towerId) {
-            socket.emit("getStatistic", {towerId}, (res) => {
-                //TODO build tower statistics
-                console.log(res);
-            });
-        }
     }
 
     function updateCredits() {
@@ -463,7 +544,6 @@
     }
 
     function resetTower() {
-        //let userData = {}; userdata not change by map change
 
         towerMainValues = {};
         towerStatsData = [];
@@ -499,7 +579,7 @@
         towerUpgradeData.forEach((data, idx) => {
             const name = data.name;
             const upgradeable = data.upgradeable;
-            if(name && upgradeable) createSkillRow(data, idx);
+            if (name && upgradeable) createSkillRow(data, idx);
         });
     }
 
@@ -519,10 +599,42 @@
         label.textContent = `${skill.name} ${skill.count}/${limit}`;
         row.appendChild(label);
 
+        // Buttons erzeugen
+        const fillBtn = document.createElement('button');
+        fillBtn.textContent = "⬆";
+        fillBtn.title = "Skill füllen";
+        fillBtn.style.marginLeft = "6px";
+        fillBtn.onclick = () => {
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+                skillData[i] = skill.name;
+            }
+            syncVisualWithSkillData(skillData);
+        };
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = "⬇";
+        clearBtn.title = "Skill leeren";
+        clearBtn.style.marginLeft = "6px";
+        clearBtn.onclick = () => {
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+                if (skillData[i] === skill.name) {
+                    skillData[i] = null;
+                }
+            }
+            syncVisualWithSkillData(skillData);
+        };
+
+        fillBtn.className = "miniSkillButton";
+        clearBtn.className = "miniSkillButton";
+
+        // Buttons an Label anhängen
+        label.appendChild(fillBtn);
+        label.appendChild(clearBtn);
+
         const boxes = document.createElement('div');
         boxes.className = 'skill-boxes';
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < MAX_SKILL_BOXES; i++) {
             const box = document.createElement('div');
             box.className = 'box';
             box.setAttribute('draggable', 'false');
@@ -583,12 +695,12 @@
     }
 
     function saveProfile() {
-        if(!hasTower) return;
+        if (!hasTower) return;
         const profileSelect = document.getElementById("profileSelect");
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil aus oder erstelle ein neues.","info");
+            showToast("Bitte wähle ein Profil aus oder erstelle ein neues.", "info");
             return;
         }
 
@@ -596,16 +708,16 @@
         profiles[selectedName] = skillData;
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
-        showToast("Profil gespeichert.","success");
+        showToast("Profil gespeichert.", "success");
     }
 
     function loadProfile() {
-        if(!hasTower) return;
+        if (!hasTower) return;
         const profileSelect = document.getElementById("profileSelect");
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil aus.","info");
+            showToast("Bitte wähle ein Profil aus.", "info");
             return;
         }
 
@@ -613,14 +725,14 @@
         const profile = profiles[selectedName];
 
         if (Array.isArray(profile)) {
-            for (let i = 0; i < skillData.length; i++) skillData[i] = null;
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) skillData[i] = null;
             profile.forEach((val, i) => {
                 skillData[i] = val || null;
             });
             syncVisualWithSkillData(skillData);
-            showToast("Profil geladen.","success");
+            showToast("Profil geladen.", "success");
         } else {
-            showToast("Fehler beim Laden des Profils.","error");
+            showToast("Fehler beim Laden des Profils.", "error");
         }
     }
 
@@ -632,7 +744,7 @@
         const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
 
         if (profiles[name]) {
-            showToast("Profilname existiert bereits.","error");
+            showToast("Profilname existiert bereits.", "error");
             return;
         }
 
@@ -645,7 +757,7 @@
         profileSelect.appendChild(option);
         profileSelect.value = name;
 
-        showToast("Profil erstellt.","success");
+        showToast("Profil erstellt.", "success");
     }
 
     function deleteProfile() {
@@ -653,7 +765,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil zum Löschen aus.","info");
+            showToast("Bitte wähle ein Profil zum Löschen aus.", "info");
             return;
         }
 
@@ -666,7 +778,7 @@
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
         loadProfiles(); // Aktualisiere das Select-Feld
-        showToast("Profil gelöscht.","success");
+        showToast("Profil gelöscht.", "success");
     }
 
     function updateMapInfo() {
@@ -691,7 +803,7 @@
             btn.style.backgroundColor = "green";
         }
 
-        if(isRunning) startLoop(); else stopLoop();
+        if (isRunning) startLoop(); else stopLoop();
     }
 
     function setToggleButtonEnabled(state) {
@@ -702,8 +814,10 @@
     function setProfileButtonsEnabled(state) {
         const btn1 = document.getElementById("loadProfileButton");
         const btn2 = document.getElementById("saveProfileButton");
+        const btn3 = document.getElementById("randomButton");
         btn1.disabled = !state;
         btn2.disabled = !state;
+        btn3.disabled = !state;
     }
 
     function setButtonState(running) {
@@ -713,10 +827,10 @@
     }
 
     function update() {
-        if(openCredits <= 0 || neededCredits <= 0 || openCredits < neededCredits ) return;
-        const skill = skillData.splice(0,1);
+        if (openCredits <= 0 || neededCredits <= 0 || openCredits < neededCredits) return;
+        const skill = skillData.splice(0, 1);
         const name = skill[0];
-        if(typeof name === 'string' && name) {
+        if (typeof name === 'string' && name) {
             // noinspection JSUnresolvedReference
             socket.emit('upgradeTower', {name});
         }
@@ -831,6 +945,110 @@
         container.appendChild(table);
     }
 
+    function randomizeSkillData() {
+        if (!hasTower || !Array.isArray(towerUpgradeData)) {
+            showToast("Keine Turm-Daten verfügbar.", "error");
+            return;
+        }
+
+        // Nur upgradebare Skills auswählen
+        const validSkills = towerUpgradeData
+            .filter(s => s.upgradeable && s.name)
+            .map(s => s.name);
+
+        if (validSkills.length === 0) {
+            showToast("Keine gültigen Skills verfügbar.", "error");
+            return;
+        }
+
+        // Jede Spalte mit zufälligem Skill befüllen
+        for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+            const randomIndex = Math.floor(Math.random() * validSkills.length);
+            skillData[i] = validSkills[randomIndex];
+        }
+
+        syncVisualWithSkillData(skillData);
+        showToast("Zufällige Skills generiert.", "success");
+    }
+
+    function setCustomUid() {
+        const input = document.getElementById("uidInput");
+        const value = input.value.trim();
+        if (!value) {
+            showToast("Bitte gib eine gültige UID ein.", "info");
+            return;
+        }
+        statisticsUid = value;
+        showToast("UID gesetzt.", "success");
+        loadStatistics(statisticsUid);
+    }
+
+    function triggerStatisticsRefresh() {
+        if (!statisticsUid) {
+            setCustomUid(); // setzt UID aus dem Input, wenn noch nicht gesetzt
+        } else {
+            loadStatistics(statisticsUid);
+        }
+    }
+
+    function loadStatistics(uid) {
+        if (!uid) return;
+
+        socket.emit("getStatistic", { towerId: uid }, (res) => {
+            const container = document.getElementById("statisticsTableContainer");
+            container.innerHTML = "";
+
+            const grid = document.createElement("div");
+            grid.style.display = "grid";
+            grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
+            grid.style.gap = "10px";
+
+            const columns = 4;
+
+            res.statistics.forEach((entry, i) => {
+                const item = document.createElement("div");
+
+                const row = Math.floor(i / columns);
+                const col = i % columns;
+                const isDark = (row + col) % 2 === 0;
+                item.style.backgroundColor = isDark ? "#1a1a1a" : "#222";
+
+                item.style.padding = "6px 10px";
+                item.style.border = "1px solid #333";
+                item.style.borderRadius = "6px";
+                item.style.display = "flex";
+                item.style.flexDirection = "column";
+                item.style.fontSize = "13px";
+                item.style.color = "#ccc";
+
+                const name = document.createElement("div");
+                name.textContent = entry.name;
+                name.style.fontWeight = "bold";
+                name.style.marginBottom = "4px";
+
+                const value = document.createElement("div");
+                value.textContent = entry.value.toLocaleString();
+
+                item.appendChild(name);
+                item.appendChild(value);
+                grid.appendChild(item);
+            });
+
+            container.appendChild(grid);
+        });
+    }
+
+    function statisticsAutoRefresh() {
+        const checkbox = document.getElementById("autoRefreshCheckbox");
+        if (checkbox.checked) {
+            autoRefreshInterval = setInterval(() => {
+                triggerStatisticsRefresh();
+            }, 1000);
+        } else {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+    }
 
     function showToast(message, type = "info") {
         const container = document.getElementById('toastContainer');
