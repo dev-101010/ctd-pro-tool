@@ -103,7 +103,6 @@
         /*noinspection CssUnusedSymbol*/
         .skill-name {
             color: #ccc;
-            width: 100px;
         }
 
         /*noinspection CssUnusedSymbol*/
@@ -258,8 +257,8 @@
 
     <div class="tab-menu">
         <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
-        <button class="tab-button" onclick="showTab(1)">Tab 2</button>
-        <button class="tab-button" onclick="showTab(2)">Tab 3</button>
+        <button class="tab-button" onclick="showTab(1)">Tower Stats</button>
+        <button class="tab-button" onclick="showTab(2)">Tower Statistics</button>
     </div>
 
     <div class="tab-content active">
@@ -284,8 +283,7 @@
     </div>
 
     <div class="tab-content">
-        <h2>Inhalt Tab 2</h2>
-        <p>Hier steht der Inhalt des zweiten Tabs.</p>
+        <div id="statsTableContainer"></div>
     </div>
 
     <div class="tab-content">
@@ -336,6 +334,8 @@
 
         buttons[index].classList.add('active');
         contents[index].classList.add('active');
+
+        if(index === 2) loadStatistics();
     }
 
     function startSocket(serverURI, userToken, authToken) {
@@ -437,8 +437,19 @@
                 hasTower = true;
                 setToggleButtonEnabled(true);
                 setProfileButtonsEnabled(true);
+                renderStatsTable();
             }
         });
+    }
+
+    function loadStatistics() {
+        const towerId = towerMainValues?.uid;
+        if(towerId) {
+            socket.emit("getStatistic", {towerId}, (res) => {
+                //TODO build tower statistics
+                console.log(res);
+            });
+        }
     }
 
     function updateCredits() {
@@ -467,6 +478,7 @@
         setButtonState(false);
         setToggleButtonEnabled(false);
         setProfileButtonsEnabled(false);
+        renderStatsTable();
     }
 
     function resetMap() {
@@ -486,23 +498,25 @@
         skillBuilded = true;
         towerUpgradeData.forEach((data, idx) => {
             const name = data.name;
-            createSkillRow(name, idx);
+            const upgradeable = data.upgradeable;
+            if(name && upgradeable) createSkillRow(data, idx);
         });
     }
-    
+
     function clearSkillContainer() {
         while (skillContainer.firstChild) {
             skillContainer.removeChild(skillContainer.firstChild);
         }
     }
 
-    function createSkillRow(skillName, skillIndex) {
+    function createSkillRow(skill, skillIndex) {
         const row = document.createElement('div');
         row.className = 'skill-row';
 
         const label = document.createElement('div');
         label.className = 'skill-name';
-        label.textContent = skillName;
+        const limit = skill.limit ? skill.limit : "∞";
+        label.textContent = `${skill.name} ${skill.count}/${limit}`;
         row.appendChild(label);
 
         const boxes = document.createElement('div');
@@ -541,11 +555,11 @@
 
                 if (dragMode === "set" && skillData[column] !== name) {
                     skillData[column] = name;
-                    syncVisualWithSkillData(skillData);
                 } else if (dragMode === "remove" && skillData[column] === name) {
                     skillData[column] = null;
-                    syncVisualWithSkillData(skillData);
                 }
+
+                syncVisualWithSkillData(skillData);
             });
 
             boxes.appendChild(box);
@@ -738,6 +752,85 @@
             }
         });
     }
+
+    function calculateStats(stat) {
+        let total = 0;
+        let base = (stat.basic || 2.5) + (stat.upg || 0);
+        total += base;
+        total += (base * stat.boost * 0.01) || 0;
+        total += (base * stat.skill * 0.01) || 0;
+        total += (base * stat.buff * 0.01) || 0;
+        total += (base * stat.item * 0.01) || 0;
+        total += (base * stat.team * 0.01) || 0;
+        total += (base * stat.res1 * 0.01) || 0;
+        total += (base * stat.res2 * 0.01) || 0;
+        total += (base * stat.res3 * 0.01) || 0;
+        return total;
+    }
+
+    function renderStatsTable() {
+        const container = document.getElementById("statsTableContainer");
+        container.innerHTML = "";
+
+        if (!Array.isArray(towerStatsData) || towerStatsData.length === 0) return;
+
+        const table = document.createElement("table");
+        table.style.borderCollapse = "collapse";
+        table.style.width = "100%";
+        table.style.fontSize = "14px";
+
+        // Dynamische Keys für Spalten (ohne 'name')
+        const dynamicKeys = Object.keys(towerStatsData[0]).filter(k => k !== "name");
+
+        // Finaler Header: name, total, ...rest
+        const headers = ["name", "total", ...dynamicKeys];
+
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+
+        headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            th.style.border = "1px solid #444";
+            th.style.padding = "4px";
+            th.style.backgroundColor = "#222";
+            th.style.color = "#ccc";
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+
+        towerStatsData.forEach(entry => {
+            const tr = document.createElement("tr");
+
+            headers.forEach(h => {
+                const td = document.createElement("td");
+
+                if (h === "total") {
+                    const total = calculateStats(entry);
+                    td.textContent = total.toFixed(2);
+                    td.style.fontWeight = "bold";
+                    td.style.color = "limegreen";
+                } else {
+                    td.textContent = entry[h] ?? "-";
+                    td.style.color = "#ccc";
+                }
+
+                td.style.border = "1px solid #444";
+                td.style.padding = "4px";
+                td.style.textAlign = "center";
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
 
     function showToast(message, type = "info") {
         const container = document.getElementById('toastContainer');
