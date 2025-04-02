@@ -924,11 +924,15 @@
 
                 if (h === "total") {
                     const total = calculateStats(entry);
-                    td.textContent = total.toFixed(2);
+                    td.textContent = formatValue(total);
                     td.style.fontWeight = "bold";
                     td.style.color = "limegreen";
-                } else {
+                } else if(h === "name") {
                     td.textContent = entry[h] ?? "-";
+                    td.style.color = "#ccc";
+                } else {
+                    //td.textContent = entry[h] ?? "-";
+                    td.textContent = formatValue(entry[h]);
                     td.style.color = "#ccc";
                 }
 
@@ -978,8 +982,9 @@
             showToast("Bitte gib eine gültige UID ein.", "info");
             return;
         }
-        statisticsUid = value;
+        statisticsUid = parseInt(value);
         showToast("UID gesetzt.", "success");
+        resetStatistics();
         loadStatistics(statisticsUid);
     }
 
@@ -991,12 +996,18 @@
         }
     }
 
+    function resetStatistics(){
+        const container = document.getElementById("statisticsTableContainer");
+        container.innerHTML = "";
+    }
+
     function loadStatistics(uid) {
         if (!uid) return;
 
         socket.emit("getStatistic", { towerId: uid }, (res) => {
+            resetStatistics();
+
             const container = document.getElementById("statisticsTableContainer");
-            container.innerHTML = "";
 
             const grid = document.createElement("div");
             grid.style.display = "grid";
@@ -1027,7 +1038,7 @@
                 name.style.marginBottom = "4px";
 
                 const value = document.createElement("div");
-                value.textContent = entry.value.toLocaleString();
+                value.textContent = formatValue(entry.value);
 
                 item.appendChild(name);
                 item.appendChild(value);
@@ -1035,6 +1046,14 @@
             });
 
             container.appendChild(grid);
+        });
+    }
+
+    function formatValue(value) {
+        const num = Number(value);
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
         });
     }
 
