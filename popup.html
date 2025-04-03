@@ -398,6 +398,7 @@
 
     let ownUserId = 0;
     let ownUserData = {};
+    let userDataSet = {};
     let towerMainValuesSet = {};
     let towerStatsDataSet = {};
     let towerUpgradeDataSet = {};
@@ -505,6 +506,7 @@
 
         socket.on("userTowerPlaced", (data, act) => {
             act();
+            userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
             if (ownUserId === data.user.uid) {
                 updateCredits();
@@ -514,6 +516,7 @@
 
         socket.on("removeTower", (data, act) => {
             act();
+            delete userDataSet[data.user.uid];
             delete towerMainValuesSet[data.user.uid];
             delete towerStatsDataSet[data.user.uid];
             delete towerUpgradeDataSet[data.user.uid];
@@ -524,6 +527,7 @@
 
         socket.on("towerMainValuesChanged", (data, act) => {
             act();
+            userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
             if (ownUserId === data.user.uid) {
                 updateCredits();
@@ -533,8 +537,8 @@
 
         socket.on("towerStatsValuesChanged", (data, act) => {
             act();
-            towerStatsDataSet[data.user.uid] = data.data;
-            towerUpgradeDataSet[data.user.uid] = data.data;
+            towerUpgradeDataSet[data.user.uid] = data.upgradeData;
+            towerStatsDataSet[data.user.uid] = data.statsData;
             if (ownUserId === data.user.uid) {
                 if (!skillBuilded) fillSkillContainer();
                 hasTower = true;
@@ -549,8 +553,8 @@
         // UID setzen, wenn input leer
         const uidInput = document.getElementById("uidInput");
         if (uidInput && uidInput.value.trim() === "") {
-            uidInput.value = data.user.uid ?? "";
-            statisticsUid = data.user.uid ?? null;
+            uidInput.value = ownUserId ?? "";
+            statisticsUid = ownUserId ?? null;
         }
     }
 
@@ -597,7 +601,9 @@
 
     function fillSkillContainer() {
         skillBuilded = true;
+        console.log("Daten zum Füllen:", towerUpgradeDataSet[ownUserId]);
         towerUpgradeDataSet[ownUserId].forEach((data, idx) => {
+            console.log("Skill:", data.name, "Upgradeable:", data.upgradeable);
             const name = data.name;
             const upgradeable = data.upgradeable;
             if (name && upgradeable) createSkillRow(data, idx);
