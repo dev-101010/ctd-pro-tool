@@ -178,6 +178,7 @@
             filter: grayscale(50%);
         }
 
+        /*noinspection CssUnusedSymbol*/
         .miniSkillButton {
             border-radius: 4px;
             font-size: 11px;
@@ -189,14 +190,17 @@
             line-height: 1;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .miniSkillButton:hover {
             scale: 1.1;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .miniSkillButton:active {
             scale: 0.9;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .miniSkillButton:disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -229,6 +233,7 @@
             border-color: #777;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .statCard {
             padding: 6px 10px;
             border: 1px solid #333;
@@ -239,10 +244,12 @@
             flex-direction: column;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .statCard.even {
             background-color: #1a1a1a;
         }
 
+        /*noinspection CssUnusedSymbol*/
         .statCard.odd {
             background-color: #222;
         }
@@ -383,11 +390,12 @@
     let isMouseDown = false;
     let dragMode = null;
 
-    let userData = {};
     let mapData = {};
-    let towerMainValues = {};
-    let towerStatsData = {};
-    let towerUpgradeData = {};
+
+    let userData = {};
+    let towerMainValuesSet = {};
+    let towerStatsDataSet = {};
+    let towerUpgradeDataSet = {};
 
     let mapCredits = 0;
     let openCredits = 0;
@@ -467,12 +475,7 @@
             act();
             userData = data;
 
-            // UID setzen, wenn input leer
-            const uidInput = document.getElementById("uidInput");
-            if (uidInput && uidInput.value.trim() === "") {
-                uidInput.value = data.user.uid ?? "";
-                statisticsUid = data.user.uid ?? null;
-            }
+            initUserInputs();
         });
 
         socket.on("mapLoaded", (data, act) => {
@@ -496,8 +499,8 @@
 
         socket.on("userTowerPlaced", (data, act) => {
             act();
+            towerMainValuesSet[data.user.uid] = data.data;
             if (userData.user.uid === data.user.uid) {
-                towerMainValues = data.data;
                 updateCredits();
                 updateMapInfo();
             }
@@ -505,15 +508,18 @@
 
         socket.on("removeTower", (data, act) => {
             act();
+            delete towerMainValuesSet[data.user.uid];
+            delete towerStatsDataSet[data.user.uid];
+            delete towerUpgradeDataSet[data.user.uid];
             if (userData.user.uid === data.user.uid) {
-                resetTower();
+                resetOwnTower();
             }
         });
 
         socket.on("towerMainValuesChanged", (data, act) => {
             act();
+            towerMainValuesSet[data.user.uid] = data.data;
             if (userData.user.uid === data.user.uid) {
-                towerMainValues = data.data;
                 updateCredits();
                 updateMapInfo();
             }
@@ -521,9 +527,9 @@
 
         socket.on("towerStatsValuesChanged", (data, act) => {
             act();
+            towerStatsDataSet[data.user.uid] = data.data;
+            towerUpgradeDataSet[data.user.uid] = data.data;
             if (userData.user.uid === data.user.uid) {
-                towerStatsData = data.statsData;
-                towerUpgradeData = data.upgradeData;
                 if (!skillBuilded) fillSkillContainer();
                 hasTower = true;
                 setToggleButtonEnabled(true);
@@ -533,21 +539,26 @@
         });
     }
 
+    function initUserInputs() {
+        // UID setzen, wenn input leer
+        const uidInput = document.getElementById("uidInput");
+        if (uidInput && uidInput.value.trim() === "") {
+            uidInput.value = data.user.uid ?? "";
+            statisticsUid = data.user.uid ?? null;
+        }
+    }
+
     function updateCredits() {
-        const creditsUsed = towerMainValues.creditsUsed ?? 0;
+        const creditsUsed = towerMainValuesSet[userData.user.uid]?.creditsUsed ?? 0;
         openCredits = mapCredits - creditsUsed;
         openCreditsEl.innerHTML = `${openCredits}`;
         const cost = mapData.map?.towerUpgradeCost ?? 0;
-        const multi = towerMainValues.upgradeMulti ?? 1;
+        const multi = towerMainValuesSet[userData.user.uid]?.upgradeMulti ?? 1;
         neededCredits = cost * multi;
         neededCreditsEl.innerHTML = `${neededCredits}`;
     }
 
-    function resetTower() {
-
-        towerMainValues = {};
-        towerStatsData = [];
-        towerUpgradeData = [];
+    function resetOwnTower() {
 
         skillBuilded = false;
         hasTower = false;
@@ -564,6 +575,10 @@
     function resetMap() {
         mapData = {};
 
+        towerMainValuesSet = {};
+        towerStatsDataSet = {};
+        towerUpgradeDataSet = {};
+
         mapCredits = 0;
         openCredits = 0;
         neededCredits = 0;
@@ -571,12 +586,12 @@
         hasMap = false;
 
         updateMapInfo();
-        resetTower();
+        resetOwnTower();
     }
 
     function fillSkillContainer() {
         skillBuilded = true;
-        towerUpgradeData.forEach((data, idx) => {
+        towerUpgradeDataSet[userData.user.uid].forEach((data, idx) => {
             const name = data.name;
             const upgradeable = data.upgradeable;
             if (name && upgradeable) createSkillRow(data, idx);
@@ -645,7 +660,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeData[row]?.name;
+                const name = towerUpgradeDataSet[userData.user.uid][row]?.name;
 
                 if (skillData[column] === name) {
                     dragMode = "remove";
@@ -663,7 +678,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeData[row]?.name;
+                const name = towerUpgradeDataSet[userData.user.uid][row]?.name;
 
                 if (dragMode === "set" && skillData[column] !== name) {
                     skillData[column] = name;
@@ -784,8 +799,8 @@
     function updateMapInfo() {
         const userName = userData?.user?.displayname;
         const mapName = mapData?.map?.name;
-        const towerName = towerMainValues?.name;
-        const towerLevel = towerMainValues?.level;
+        const towerName = towerMainValuesSet[userData.user.uid]?.name;
+        const towerLevel = towerMainValuesSet[userData.user.uid]?.level;
         document.getElementById("userName").textContent = userName ?? "–";
         document.getElementById("mapName").textContent = mapName ?? "–";
         document.getElementById("towerName").textContent = towerName ?? "–";
@@ -857,7 +872,7 @@
             const skillIdx = Number(box.dataset.skill); // Zeile
             const expectedSkillName = skillArray[index];
 
-            const actualName = towerUpgradeData?.[skillIdx]?.name;
+            const actualName = towerUpgradeDataSet[userData.user.uid]?.[skillIdx]?.name;
 
             if (expectedSkillName && actualName === expectedSkillName) {
                 box.classList.add('active');
@@ -886,7 +901,7 @@
         const container = document.getElementById("statsTableContainer");
         container.innerHTML = "";
 
-        if (!Array.isArray(towerStatsData) || towerStatsData.length === 0) return;
+        if (!Array.isArray(towerStatsDataSet[userData.user.uid]) || towerStatsDataSet[userData.user.uid].length === 0) return;
 
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
@@ -894,7 +909,7 @@
         table.style.fontSize = "14px";
 
         // Dynamische Keys für Spalten (ohne 'name')
-        const dynamicKeys = Object.keys(towerStatsData[0]).filter(k => k !== "name");
+        const dynamicKeys = Object.keys(towerStatsDataSet[userData.user.uid][0]).filter(k => k !== "name");
 
         // Finaler Header: name, total, ...rest
         const headers = ["name", "total", ...dynamicKeys];
@@ -916,7 +931,7 @@
 
         const tbody = document.createElement("tbody");
 
-        towerStatsData.forEach(entry => {
+        towerStatsDataSet[userData.user.uid].forEach(entry => {
             const tr = document.createElement("tr");
 
             headers.forEach(h => {
@@ -928,10 +943,9 @@
                     td.style.fontWeight = "bold";
                     td.style.color = "limegreen";
                 } else if(h === "name") {
-                    td.textContent = entry[h] ?? "-";
+                    td.textContent = entry[h];
                     td.style.color = "#ccc";
                 } else {
-                    //td.textContent = entry[h] ?? "-";
                     td.textContent = formatValue(entry[h]);
                     td.style.color = "#ccc";
                 }
@@ -950,13 +964,13 @@
     }
 
     function randomizeSkillData() {
-        if (!hasTower || !Array.isArray(towerUpgradeData)) {
+        if (!hasTower || !Array.isArray(towerUpgradeDataSet[userData.user.uid])) {
             showToast("Keine Turm-Daten verfügbar.", "error");
             return;
         }
 
         // Nur upgradebare Skills auswählen
-        const validSkills = towerUpgradeData
+        const validSkills = towerUpgradeDataSet[userData.user.uid]
             .filter(s => s.upgradeable && s.name)
             .map(s => s.name);
 
