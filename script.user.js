@@ -18,7 +18,7 @@
         if (!battleButtonContainer) return;
 
         const button = document.createElement("button");
-        button.textContent = "Open Upgrade Tool";
+        button.textContent = "Open Pro Tool";
         button.classList.add("btn", "btn-success");
         button.style.margin = "5px";
         button.addEventListener("click", async () => {
