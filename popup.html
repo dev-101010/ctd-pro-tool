@@ -366,9 +366,10 @@
     <div class="tab-content">
         <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
             <div class="controls">
-                <label for="uidInput">User-ID:</label>
-                <input type="text" id="uidInput" class="uidInput" placeholder="UID">
-                <button onclick="setCustomUid()" class="profileButton">✔️</button>
+                <label for="userSelect">User:</label>
+                <select id="userSelect" class="uidInput" onchange="setSelectedUid()">
+                    <!-- Dynamisch befüllt -->
+                </select>
             </div>
             <div class="controls">
                 <button onclick="triggerStatisticsRefresh()" class="profileButton">🔁</button>
@@ -508,6 +509,7 @@
             act();
             userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
+            updateUserSelectOptions();
             if (ownUserId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
@@ -529,6 +531,7 @@
             act();
             userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
+            updateUserSelectOptions();
             if (ownUserId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
@@ -1001,25 +1004,12 @@
         showToast("Zufällige Skills generiert.", "success");
     }
 
-    function setCustomUid() {
-        const input = document.getElementById("uidInput");
-        const value = input.value.trim();
-        if (!value) {
-            showToast("Bitte gib eine gültige UID ein.", "info");
-            return;
-        }
-        statisticsUid = parseInt(value);
-        showToast("UID gesetzt.", "success");
-        resetStatistics();
-        loadStatistics(statisticsUid);
-    }
-
     function triggerStatisticsRefresh() {
         if (!statisticsUid) {
-            setCustomUid(); // setzt UID aus dem Input, wenn noch nicht gesetzt
-        } else {
-            loadStatistics(statisticsUid);
+            showToast("Kein Benutzer ausgewählt.", "info");
+            return;
         }
+        loadStatistics(statisticsUid);
     }
 
     function resetStatistics() {
@@ -1093,6 +1083,34 @@
             clearInterval(autoRefreshInterval);
             autoRefreshInterval = null;
         }
+    }
+
+    function setSelectedUid() {
+        const select = document.getElementById("userSelect");
+        statisticsUid = parseInt(select.value);
+        triggerStatisticsRefresh();
+    }
+
+    function updateUserSelectOptions() {
+        const select = document.getElementById("userSelect");
+        if (!select) return;
+
+        // Clear und neu aufbauen
+        select.innerHTML = "";
+        Object.keys(towerMainValuesSet).forEach(uid => {
+            const user = userDataSet[uid];
+            if (!user || !user.displayname) return;
+
+            const option = document.createElement("option");
+            option.value = uid;
+            option.textContent = user.displayname;
+
+            if (parseInt(uid) === statisticsUid) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        });
     }
 
     function showToast(message, type = "info") {
