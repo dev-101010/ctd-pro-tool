@@ -947,17 +947,15 @@
         const container = document.getElementById("statsTableContainer");
         container.innerHTML = "";
 
-        if (!Array.isArray(towerStatsDataSet[uid]) || towerStatsDataSet[uid].length === 0) return;
+        const stats = towerStatsDataSet[uid];
+        if (!Array.isArray(stats) || stats.length === 0) return;
 
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
         table.style.width = "100%";
         table.style.fontSize = "14px";
 
-        // Dynamische Keys für Spalten (ohne 'name')
-        const dynamicKeys = Object.keys(towerStatsDataSet[ownUserId][0]).filter(k => k !== "name");
-
-        // Finaler Header: name, total, ...rest
+        const dynamicKeys = Object.keys(stats[0]).filter(k => k !== "name");
         const headers = ["name", "total", ...dynamicKeys];
 
         const thead = document.createElement("thead");
@@ -977,7 +975,7 @@
 
         const tbody = document.createElement("tbody");
 
-        towerStatsDataSet[ownUserId].forEach(entry => {
+        stats.forEach(entry => {
             const tr = document.createElement("tr");
 
             headers.forEach(h => {
