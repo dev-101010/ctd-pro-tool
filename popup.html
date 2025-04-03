@@ -396,6 +396,7 @@
 
     let mapData = {};
 
+    let userId = 0;
     let userData = {};
     let towerMainValuesSet = {};
     let towerStatsDataSet = {};
@@ -477,6 +478,7 @@
 
         socket.on("updateUserDetails", (data, act) => {
             act();
+            userId = data.userData.uid;
             userData = data;
 
             initUserInputs();
@@ -504,7 +506,7 @@
         socket.on("userTowerPlaced", (data, act) => {
             act();
             towerMainValuesSet[data.user.uid] = data.data;
-            if (userData.user.uid === data.user.uid) {
+            if (userId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
             }
@@ -515,7 +517,7 @@
             delete towerMainValuesSet[data.user.uid];
             delete towerStatsDataSet[data.user.uid];
             delete towerUpgradeDataSet[data.user.uid];
-            if (userData.user.uid === data.user.uid) {
+            if (userId === data.user.uid) {
                 resetOwnTower();
             }
         });
@@ -523,7 +525,7 @@
         socket.on("towerMainValuesChanged", (data, act) => {
             act();
             towerMainValuesSet[data.user.uid] = data.data;
-            if (userData.user.uid === data.user.uid) {
+            if (userId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
             }
@@ -533,7 +535,7 @@
             act();
             towerStatsDataSet[data.user.uid] = data.data;
             towerUpgradeDataSet[data.user.uid] = data.data;
-            if (userData.user.uid === data.user.uid) {
+            if (userId === data.user.uid) {
                 if (!skillBuilded) fillSkillContainer();
                 hasTower = true;
                 setToggleButtonEnabled(true);
@@ -553,11 +555,11 @@
     }
 
     function updateCredits() {
-        const creditsUsed = towerMainValuesSet[userData.user.uid]?.creditsUsed ?? 0;
+        const creditsUsed = towerMainValuesSet[userId]?.creditsUsed ?? 0;
         openCredits = mapCredits - creditsUsed;
         openCreditsEl.innerHTML = `${openCredits}`;
         const cost = mapData.map?.towerUpgradeCost ?? 0;
-        const multi = towerMainValuesSet[userData.user.uid]?.upgradeMulti ?? 1;
+        const multi = towerMainValuesSet[userId]?.upgradeMulti ?? 1;
         neededCredits = cost * multi;
         neededCreditsEl.innerHTML = `${neededCredits}`;
     }
@@ -595,7 +597,7 @@
 
     function fillSkillContainer() {
         skillBuilded = true;
-        towerUpgradeDataSet[userData.user.uid].forEach((data, idx) => {
+        towerUpgradeDataSet[userId].forEach((data, idx) => {
             const name = data.name;
             const upgradeable = data.upgradeable;
             if (name && upgradeable) createSkillRow(data, idx);
@@ -664,7 +666,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[userData.user.uid][row]?.name;
+                const name = towerUpgradeDataSet[userId][row]?.name;
 
                 if (skillData[column] === name) {
                     dragMode = "remove";
@@ -682,7 +684,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[userData.user.uid][row]?.name;
+                const name = towerUpgradeDataSet[userId][row]?.name;
 
                 if (dragMode === "set" && skillData[column] !== name) {
                     skillData[column] = name;
@@ -803,8 +805,8 @@
     function updateMapInfo() {
         const userName = userData?.user?.displayname;
         const mapName = mapData?.map?.name;
-        const towerName = towerMainValuesSet[userData.user.uid]?.name;
-        const towerLevel = towerMainValuesSet[userData.user.uid]?.level;
+        const towerName = towerMainValuesSet[userId]?.name;
+        const towerLevel = towerMainValuesSet[userId]?.level;
         document.getElementById("userName").textContent = userName ?? "–";
         document.getElementById("mapName").textContent = mapName ?? "–";
         document.getElementById("towerName").textContent = towerName ?? "–";
@@ -876,7 +878,7 @@
             const skillIdx = Number(box.dataset.skill); // Zeile
             const expectedSkillName = skillArray[index];
 
-            const actualName = towerUpgradeDataSet[userData.user.uid]?.[skillIdx]?.name;
+            const actualName = towerUpgradeDataSet[userId]?.[skillIdx]?.name;
 
             if (expectedSkillName && actualName === expectedSkillName) {
                 box.classList.add('active');
@@ -905,7 +907,7 @@
         const container = document.getElementById("statsTableContainer");
         container.innerHTML = "";
 
-        if (!Array.isArray(towerStatsDataSet[userData.user.uid]) || towerStatsDataSet[userData.user.uid].length === 0) return;
+        if (!Array.isArray(towerStatsDataSet[userId]) || towerStatsDataSet[userId].length === 0) return;
 
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
@@ -913,7 +915,7 @@
         table.style.fontSize = "14px";
 
         // Dynamische Keys für Spalten (ohne 'name')
-        const dynamicKeys = Object.keys(towerStatsDataSet[userData.user.uid][0]).filter(k => k !== "name");
+        const dynamicKeys = Object.keys(towerStatsDataSet[userId][0]).filter(k => k !== "name");
 
         // Finaler Header: name, total, ...rest
         const headers = ["name", "total", ...dynamicKeys];
@@ -935,7 +937,7 @@
 
         const tbody = document.createElement("tbody");
 
-        towerStatsDataSet[userData.user.uid].forEach(entry => {
+        towerStatsDataSet[userId].forEach(entry => {
             const tr = document.createElement("tr");
 
             headers.forEach(h => {
@@ -968,13 +970,13 @@
     }
 
     function randomizeSkillData() {
-        if (!hasTower || !Array.isArray(towerUpgradeDataSet[userData.user.uid])) {
+        if (!hasTower || !Array.isArray(towerUpgradeDataSet[userId])) {
             showToast("Keine Turm-Daten verfügbar.", "error");
             return;
         }
 
         // Nur upgradebare Skills auswählen
-        const validSkills = towerUpgradeDataSet[userData.user.uid]
+        const validSkills = towerUpgradeDataSet[userId]
             .filter(s => s.upgradeable && s.name)
             .map(s => s.name);
 
