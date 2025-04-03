@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         CTD Upgrade Tool
+// @name         C-TD Pro Tool
 // @namespace    https://dev-101010.de/ctdt/script.user.js
 // @version      0.1
-// @description  CTD Tower upgrade
+// @description  C-TD Pro Tool
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield
 // @match        https://www.c-td.de/member/battlefield
