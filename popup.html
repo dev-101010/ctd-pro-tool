@@ -495,7 +495,6 @@
 
             initUserSelectDisplay();
             initStatsSelectDisplay();
-            initUserInputs();
         });
 
         socket.on("mapLoaded", (data, act) => {
@@ -571,16 +570,6 @@
                 renderStatsTable();
             }
         });
-    }
-
-    function initUserInputs() {
-        // UID setzen, wenn input leer
-        const uidInput = document.getElementById("uidInput");
-        if (uidInput && uidInput.value.trim() === "") {
-            uidInput.value = ownUserId ?? "";
-            statisticsUid = ownUserId ?? null;
-        }
-
     }
 
     function updateCredits() {
