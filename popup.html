@@ -478,7 +478,7 @@
 
         socket.on("updateUserDetails", (data, act) => {
             act();
-            ownUserId = data.userData.uid;
+            ownUserId = data.user.uid;
             ownUserData = data;
 
             initUserInputs();
