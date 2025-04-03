@@ -253,6 +253,45 @@
             background-color: #222;
         }
 
+        .autoRefreshWrapper {
+            position: relative;
+            width: 28px;
+            height: 28px;
+        }
+
+        .autoRefreshBtn {
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinnerOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
         /*noinspection CssUnusedSymbol*/
         .toast {
             background-color: #222;
@@ -379,11 +418,11 @@
                 </select>
             </div>
             <div class="controls">
-                <button onclick="triggerStatisticsRefresh()" class="profileButton">🔁</button>
-                <label style="display: flex; align-items: center; gap: 4px;">
-                    <input type="checkbox" onclick="statisticsAutoRefresh()" id="autoRefreshCheckbox">
-                    Auto-Refresh
-                </label>
+                <button onclick="triggerStatisticsRefresh()" title="Refresh" class="profileButton">🔁</button>
+                <div class="autoRefreshWrapper">
+                    <button id="autoRefreshToggle" title="Auto Refresh" onclick="toggleAutoRefresh()" class="profileButton autoRefreshBtn">🚘</button>
+                    <div id="autoRefreshSpinner" class="spinnerOverlay" style="display: none;"></div>
+                </div>
             </div>
         </div>
 
@@ -422,6 +461,7 @@
 
     let statisticsUid = null;
     let statsUid = null;
+    let autoRefreshEnabled = false;
     let autoRefreshInterval = null;
     let statisticsSelectFilled = false;
     let statsSelectFilled = false;
@@ -1094,6 +1134,28 @@
         } else {
             clearInterval(autoRefreshInterval);
             autoRefreshInterval = null;
+        }
+    }
+
+    function toggleAutoRefresh() {
+        const btn = document.getElementById("autoRefreshToggle");
+        const spinner = document.getElementById("autoRefreshSpinner");
+
+        autoRefreshEnabled = !autoRefreshEnabled;
+
+        if (autoRefreshEnabled) {
+            btn.textContent = ""; // Symbol ausblenden
+            spinner.style.display = "block";
+
+            autoRefreshInterval = setInterval(() => {
+                triggerStatisticsRefresh();
+            }, 1000);
+        } else {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+
+            btn.textContent = "🚘";
+            spinner.style.display = "none";
         }
     }
 
