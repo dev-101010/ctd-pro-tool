@@ -1205,6 +1205,8 @@
         const select = document.getElementById("userSelect");
         if (!select || ownUserId === 0) return;
 
+        statisticsUid = ownUserId;
+
         if (select.options.length === 0 && ownUserData?.user?.displayname) {
             const opt = document.createElement("option");
             opt.value = ownUserId;
@@ -1217,6 +1219,8 @@
     function initStatsSelectDisplay() {
         const select = document.getElementById("statsUserSelect");
         if (!select || ownUserId === 0) return;
+
+        statsUid = ownUserId;
 
         if (select.options.length === 0 && ownUserData?.user?.displayname) {
             const opt = document.createElement("option");
