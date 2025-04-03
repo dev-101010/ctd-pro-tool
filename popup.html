@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>C-TD Upgrade Tool</title>
+    <title>C-TD Pro Tool</title>
     <script src="https://www.c-td.de/assets/custom/socket.io.js"></script>
     <style>
         body {
@@ -373,8 +373,8 @@
     <div class="tab-content">
         <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
             <div class="controls">
-                <label for="userSelect">User:</label>
-                <select id="userSelect" class="uidInput" onfocus="fillUserSelectIfNeeded()" onchange="setSelectedUid()">
+                <label for="statisticsUserSelect">User:</label>
+                <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()" onchange="setSelectedStatisticsUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
             </div>
@@ -423,7 +423,7 @@
     let statisticsUid = null;
     let statsUid = null;
     let autoRefreshInterval = null;
-    let userSelectFilled = false;
+    let statisticsUserSelectFilled = false;
     let statsSelectFilled = false;
 
     const skillData = [];
@@ -493,7 +493,7 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
-            initUserSelectDisplay();
+            initStatisticsUserSelectDisplay();
             initStatsSelectDisplay();
         });
 
@@ -1097,8 +1097,8 @@
         }
     }
 
-    function setSelectedUid() {
-        const select = document.getElementById("userSelect");
+    function setSelectedStatisticsUid() {
+        const select = document.getElementById("statisticsUserSelect");
         statisticsUid = parseInt(select.value);
         triggerStatisticsRefresh();
     }
@@ -1109,10 +1109,10 @@
         renderStatsTable();
     }
 
-    function fillUserSelectIfNeeded() {
-        if (userSelectFilled) return;
-        updateUserSelectOptions();
-        userSelectFilled = true;
+    function fillStatisticsSelectIfNeeded() {
+        if (statisticsUserSelectFilled) return;
+        updateStatisticsUserSelectOptions();
+        statisticsUserSelectFilled = true;
     }
 
     function fillStatsSelectIfNeeded() {
@@ -1122,12 +1122,12 @@
     }
 
     function resetSelectFills() {
-        userSelectFilled = false;
+        statisticsUserSelectFilled = false;
         statsSelectFilled = false;
     }
 
-    function updateUserSelectOptions() {
-        const select = document.getElementById("userSelect");
+    function updateStatisticsUserSelectOptions() {
+        const select = document.getElementById("statisticsUserSelect");
         if (!select) return;
 
         const currentValue = select.value;
@@ -1190,8 +1190,8 @@
         }
     }
 
-    function initUserSelectDisplay() {
-        const select = document.getElementById("userSelect");
+    function initStatisticsUserSelectDisplay() {
+        const select = document.getElementById("statisticsUserSelect");
         if (!select || ownUserId === 0) return;
 
         statisticsUid = ownUserId;
