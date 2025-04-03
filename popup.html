@@ -423,7 +423,7 @@
     let statisticsUid = null;
     let statsUid = null;
     let autoRefreshInterval = null;
-    let statisticsUserSelectFilled = false;
+    let statisticsSelectFilled = false;
     let statsSelectFilled = false;
 
     const skillData = [];
@@ -493,7 +493,7 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
-            initStatisticsUserSelectDisplay();
+            initStatisticsSelectDisplay();
             initStatsSelectDisplay();
         });
 
@@ -1110,9 +1110,9 @@
     }
 
     function fillStatisticsSelectIfNeeded() {
-        if (statisticsUserSelectFilled) return;
-        updateStatisticsUserSelectOptions();
-        statisticsUserSelectFilled = true;
+        if (statisticsSelectFilled) return;
+        updateStatisticsSelectOptions();
+        statisticsSelectFilled = true;
     }
 
     function fillStatsSelectIfNeeded() {
@@ -1122,11 +1122,11 @@
     }
 
     function resetSelectFills() {
-        statisticsUserSelectFilled = false;
+        statisticsSelectFilled = false;
         statsSelectFilled = false;
     }
 
-    function updateStatisticsUserSelectOptions() {
+    function updateStatisticsSelectOptions() {
         const select = document.getElementById("statisticsUserSelect");
         if (!select) return;
 
@@ -1190,7 +1190,7 @@
         }
     }
 
-    function initStatisticsUserSelectDisplay() {
+    function initStatisticsSelectDisplay() {
         const select = document.getElementById("statisticsUserSelect");
         if (!select || ownUserId === 0) return;
 
