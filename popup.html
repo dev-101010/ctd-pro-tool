@@ -416,6 +416,7 @@
                 <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()" onchange="setSelectedStatisticsUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
+                <button id="statModeToggle" title="Statistik Typ" class="profileButton" style="margin-left: 16px;" onclick="toggleStatisticMode()">Full</button>
             </div>
             <div class="controls">
                 <button onclick="triggerStatisticsRefresh()" title="Refresh" class="profileButton">🔁</button>
@@ -465,6 +466,7 @@
     let autoRefreshInterval = null;
     let statisticsSelectFilled = false;
     let statsSelectFilled = false;
+    let statisticsMode = "full";
 
     const skillData = [];
 
@@ -1072,7 +1074,8 @@
     function loadStatistics(uid) {
         if (!uid) return;
 
-        socket.emit("getStatistic", {towerId: uid}, (res) => {
+        const eventName = statisticsMode === "wave" ? "getWaveStatistic" : "getStatistic";
+        socket.emit(eventName, { towerId: uid }, (res) => {
             resetStatistics();
 
             const container = document.getElementById("statisticsTableContainer");
@@ -1125,15 +1128,14 @@
         });
     }
 
-    function statisticsAutoRefresh() {
-        const checkbox = document.getElementById("autoRefreshCheckbox");
-        if (checkbox.checked) {
-            autoRefreshInterval = setInterval(() => {
-                triggerStatisticsRefresh();
-            }, 1000);
-        } else {
-            clearInterval(autoRefreshInterval);
-            autoRefreshInterval = null;
+    function toggleStatisticMode() {
+        statisticsMode = statisticsMode === "full" ? "wave" : "full";
+
+        const button = document.getElementById("statModeToggle");
+        button.textContent = statisticsMode.charAt(0).toUpperCase() + statisticsMode.slice(1);
+
+        if (statisticsUid) {
+            loadStatistics(statisticsUid);
         }
     }
 
