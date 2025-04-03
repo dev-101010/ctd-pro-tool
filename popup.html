@@ -404,7 +404,7 @@
 
     let mapData = {};
 
-    let ownUserId = 0;
+    let ownUserId = null;
     let ownUserData = {};
     let userDataSet = {};
     let towerMainValuesSet = {};
@@ -534,6 +534,16 @@
             if (ownUserId === data.user.uid) {
                 resetOwnTower();
             }
+            if (statisticsUid === data.user.uid) {
+                statisticsUid = null;
+                resetStatistics();
+            }
+            if (statsUid === data.user.uid) {
+                statsUid = null;
+                renderStatsTable();
+            }
+            updateUserSelectOptions();
+            updateStatsSelectOptions();
         });
 
         socket.on("towerMainValuesChanged", (data, act) => {
@@ -597,6 +607,7 @@
     function resetMap() {
         mapData = {};
 
+        userDataSet = {};
         towerMainValuesSet = {};
         towerStatsDataSet = {};
         towerUpgradeDataSet = {};
@@ -609,6 +620,8 @@
 
         updateMapInfo();
         resetOwnTower();
+        updateUserSelectOptions();
+        updateStatsSelectOptions();
     }
 
     function fillSkillContainer() {
