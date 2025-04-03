@@ -219,7 +219,7 @@
         }
 
         .uidInput {
-            width: 70px; /* oder 80px je nach UID-Länge */
+            width: 70px;
             padding: 4px 6px;
             font-size: 14px;
             background-color: #333;
@@ -328,8 +328,12 @@
     <div class="tab-content active">
         <div class="header-bar">
             <div class="controls">
-                <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()" style="background-color: green;">Start</button>
-                <button id="randomButton" class="profileButton" title="Zufällig füllen" onclick="randomizeSkillData()">🎲</button>
+                <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()"
+                        style="background-color: green;">Start
+                </button>
+                <button id="randomButton" class="profileButton" title="Zufällig füllen" onclick="randomizeSkillData()">
+                    🎲
+                </button>
             </div>
             <div>Credits: <span id="openCredits">0</span>/<span id="neededCredits">0</span></div>
             <div class="controls">
@@ -942,7 +946,7 @@
                     td.textContent = formatValue(total);
                     td.style.fontWeight = "bold";
                     td.style.color = "limegreen";
-                } else if(h === "name") {
+                } else if (h === "name") {
                     td.textContent = entry[h];
                     td.style.color = "#ccc";
                 } else {
@@ -1010,7 +1014,7 @@
         }
     }
 
-    function resetStatistics(){
+    function resetStatistics() {
         const container = document.getElementById("statisticsTableContainer");
         container.innerHTML = "";
     }
@@ -1018,7 +1022,7 @@
     function loadStatistics(uid) {
         if (!uid) return;
 
-        socket.emit("getStatistic", { towerId: uid }, (res) => {
+        socket.emit("getStatistic", {towerId: uid}, (res) => {
             resetStatistics();
 
             const container = document.getElementById("statisticsTableContainer");
