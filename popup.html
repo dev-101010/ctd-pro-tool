@@ -362,7 +362,7 @@
         <div class="header-bar">
             <div class="controls">
                 <label for="statsUserSelect">User:</label>
-                <select id="statsUserSelect" class="uidInput" onchange="setStatsUid()">
+                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()" onchange="setStatsUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
             </div>
@@ -374,7 +374,7 @@
         <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
             <div class="controls">
                 <label for="userSelect">User:</label>
-                <select id="userSelect" class="uidInput" onchange="setSelectedUid()">
+                <select id="userSelect" class="uidInput" onfocus="fillUserSelectIfNeeded()" onchange="setSelectedUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
             </div>
@@ -423,6 +423,8 @@
     let statisticsUid = null;
     let statsUid = null;
     let autoRefreshInterval = null;
+    let userSelectFilled = false;
+    let statsSelectFilled = false;
 
     const skillData = [];
 
@@ -491,6 +493,8 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
+            initUserSelectDisplay();
+            initStatsSelectDisplay();
             initUserInputs();
         });
 
@@ -517,8 +521,7 @@
             act();
             userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
-            updateUserSelectOptions();
-            updateStatsSelectOptions();
+            resetSelectFills();
             if (ownUserId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
@@ -542,15 +545,14 @@
                 statsUid = null;
                 renderStatsTable();
             }
-            updateUserSelectOptions();
-            updateStatsSelectOptions();
+            resetSelectFills();
         });
 
         socket.on("towerMainValuesChanged", (data, act) => {
             act();
             userDataSet[data.user.uid] = data.user;
             towerMainValuesSet[data.user.uid] = data.data;
-            updateUserSelectOptions();
+            resetSelectFills();
             if (ownUserId === data.user.uid) {
                 updateCredits();
                 updateMapInfo();
@@ -578,6 +580,7 @@
             uidInput.value = ownUserId ?? "";
             statisticsUid = ownUserId ?? null;
         }
+
     }
 
     function updateCredits() {
@@ -620,8 +623,7 @@
 
         updateMapInfo();
         resetOwnTower();
-        updateUserSelectOptions();
-        updateStatsSelectOptions();
+        resetSelectFills();
     }
 
     function fillSkillContainer() {
@@ -934,27 +936,6 @@
         return total;
     }
 
-    function updateStatsSelectOptions() {
-        const select = document.getElementById("statsUserSelect");
-        if (!select) return;
-
-        select.innerHTML = "";
-        Object.keys(towerMainValuesSet).forEach(uid => {
-            const user = userDataSet[uid];
-            if (!user || !user.displayname) return;
-
-            const option = document.createElement("option");
-            option.value = uid;
-            option.textContent = user.displayname;
-
-            if (parseInt(uid) === statsUid) {
-                option.selected = true;
-            }
-
-            select.appendChild(option);
-        });
-    }
-
     function renderStatsTable() {
         const uid = statsUid ?? ownUserId;
         const container = document.getElementById("statsTableContainer");
@@ -1139,26 +1120,111 @@
         renderStatsTable();
     }
 
+    function fillUserSelectIfNeeded() {
+        if (userSelectFilled) return;
+        updateUserSelectOptions();
+        userSelectFilled = true;
+    }
+
+    function fillStatsSelectIfNeeded() {
+        if (statsSelectFilled) return;
+        updateStatsSelectOptions();
+        statsSelectFilled = true;
+    }
+
+    function resetSelectFills() {
+        userSelectFilled = false;
+        statsSelectFilled = false;
+    }
+
     function updateUserSelectOptions() {
         const select = document.getElementById("userSelect");
         if (!select) return;
 
-        // Clear und neu aufbauen
+        const currentValue = select.value;
         select.innerHTML = "";
-        Object.keys(towerMainValuesSet).forEach(uid => {
-            const user = userDataSet[uid];
-            if (!user || !user.displayname) return;
 
+        const ownUser = userDataSet[ownUserId];
+        if (ownUser?.displayname) {
+            const option = document.createElement("option");
+            option.value = ownUserId;
+            option.textContent = ownUser.displayname + " (du)";
+            select.appendChild(option);
+        }
+
+        const others = Object.keys(towerMainValuesSet)
+            .filter(uid => parseInt(uid) !== ownUserId)
+            .map(uid => ({ uid, name: userDataSet[uid]?.displayname || "Unbekannt" }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        others.forEach(({ uid, name }) => {
             const option = document.createElement("option");
             option.value = uid;
-            option.textContent = user.displayname;
-
-            if (parseInt(uid) === statisticsUid) {
-                option.selected = true;
-            }
-
+            option.textContent = name;
             select.appendChild(option);
         });
+
+        if ([...select.options].some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        }
+    }
+
+    function updateStatsSelectOptions() {
+        const select = document.getElementById("statsUserSelect");
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = "";
+
+        const ownUser = userDataSet[ownUserId];
+        if (ownUser?.displayname) {
+            const option = document.createElement("option");
+            option.value = ownUserId;
+            option.textContent = ownUser.displayname + " (du)";
+            select.appendChild(option);
+        }
+
+        const others = Object.keys(towerMainValuesSet)
+            .filter(uid => parseInt(uid) !== ownUserId)
+            .map(uid => ({ uid, name: userDataSet[uid]?.displayname || "Unbekannt" }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        others.forEach(({ uid, name }) => {
+            const option = document.createElement("option");
+            option.value = uid;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+
+        if ([...select.options].some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        }
+    }
+
+    function initUserSelectDisplay() {
+        const select = document.getElementById("userSelect");
+        if (!select || ownUserId === 0) return;
+
+        if (select.options.length === 0 && ownUserData?.user?.displayname) {
+            const opt = document.createElement("option");
+            opt.value = ownUserId;
+            opt.textContent = ownUserData.user.displayname + " (du)";
+            select.appendChild(opt);
+            select.value = ownUserId;
+        }
+    }
+
+    function initStatsSelectDisplay() {
+        const select = document.getElementById("statsUserSelect");
+        if (!select || ownUserId === 0) return;
+
+        if (select.options.length === 0 && ownUserData?.user?.displayname) {
+            const opt = document.createElement("option");
+            opt.value = ownUserId;
+            opt.textContent = ownUserData.user.displayname + " (du)";
+            select.appendChild(opt);
+            select.value = ownUserId;
+        }
     }
 
     function showToast(message, type = "info") {
