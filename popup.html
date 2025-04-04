@@ -529,16 +529,15 @@
             const serverTime = args.t;
             const latency = args.l;
 
-            // Farbe je nach Ping
             let color;
             if (latency < 50) {
-                color = "lime";       // Sehr gut
+                color = "lime";
             } else if (latency < 100) {
-                color = "gold";       // Okay
+                color = "gold";
             } else if (latency < 200) {
-                color = "orange";     // Schwach
+                color = "orange";
             } else {
-                color = "red";        // Schlecht
+                color = "red";
             }
 
             icon.style.color = color;
@@ -549,14 +548,13 @@
             socket.emit("authUser", {
                 token: userToken
             });
-            console.log("Connected");
+            console.log("C-TD Pro Tool connected");
         });
 
         socket.on("authSuccess", () => {
             socket.emit("setPage", {
                 page: "battlefield"
             });
-            console.log("Auth success");
             setTimeout(() => {
                 loadingMessage.style.display = "none";
                 mainContent.style.display = "block";
