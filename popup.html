@@ -13,7 +13,7 @@
         }
 
         .map-info-bar {
-            background-color: #1a1a1a;
+            background-color: #000000;
             color: #ccc;
             padding: 8px 16px;
             font-size: 14px;
@@ -21,6 +21,13 @@
             display: flex;
             gap: 40px;
             flex-wrap: wrap;
+            cursor: default;
+            user-select: none;
+        }
+
+        #ping {
+            font-size: 12px;
+            cursor: default;
         }
 
         .info-block {
@@ -351,6 +358,7 @@
 <div id="mainContent" style="display: none;">
 
     <div id="mapInfoBar" class="map-info-bar">
+        <span id="ping">⬤</span>
         <span class="info-block">User: <span id="userName">–</span></span>
         <span class="info-block">Map: <span id="mapName">–</span></span>
         <span class="info-block">Tower: <span id="towerName">–</span></span>
@@ -447,6 +455,7 @@
     let ownUserId = null;
     let ownUserData = {};
     let userDataSet = {};
+
     let towerMainValuesSet = {};
     let towerStatsDataSet = {};
     let towerUpgradeDataSet = {};
@@ -510,6 +519,30 @@
             if (event !== "ding" && event !== "dong") {
                 console.log(event, args);
             }
+        });
+
+        socket.on("ding",(args) => {
+            socket.emit("dong",args);
+            const icon = document.getElementById("ping");
+
+            // noinspection JSUnusedLocalSymbols
+            const serverTime = args.t;
+            const latency = args.l;
+
+            // Farbe je nach Ping
+            let color;
+            if (latency < 50) {
+                color = "lime";       // Sehr gut
+            } else if (latency < 100) {
+                color = "gold";       // Okay
+            } else if (latency < 200) {
+                color = "orange";     // Schwach
+            } else {
+                color = "red";        // Schlecht
+            }
+
+            icon.style.color = color;
+            icon.title = (latency != null ? latency + "ms" : "–");
         });
 
         socket.on("connect", () => {
