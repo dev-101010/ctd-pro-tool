@@ -692,9 +692,7 @@
 
     function fillSkillContainer() {
         skillBuilded = true;
-        console.log("Daten zum Füllen:", towerUpgradeDataSet[ownUserId]);
         towerUpgradeDataSet[ownUserId].forEach((data, idx) => {
-            console.log("Skill:", data.name, "Upgradeable:", data.upgradeable);
             const name = data.name;
             const upgradeable = data.upgradeable;
             if (name && upgradeable) createSkillRow(data, idx);
@@ -1109,7 +1107,11 @@
 
         const eventName = statisticsMode === "wave" ? "getWaveStatistic" : "getStatistic";
         socket.emit(eventName, { towerId: uid }, (res) => {
+            console.log(eventName, res);
+
             resetStatistics();
+
+            if(!res.statistics) return;
 
             const container = document.getElementById("statisticsTableContainer");
 
