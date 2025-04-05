@@ -746,7 +746,7 @@
                 }
             }
 
-            updatePowerUpRow(group, name, data.powerUp);
+            updatePowerUpRow(data.powerUp);
         });
     }
 
@@ -1576,34 +1576,39 @@
         container.appendChild(table);
     }
 
-    function updatePowerUpRow(group, name, updatedData) {
+    function updatePowerUpRow(updatedData) {
+        const group = updatedData.group;
+        const name = updatedData.name;
+
         const row = document.querySelector(
             `#powerUpsContainer tr[data-group="${group}"][data-name="${name}"]`
         );
         if (!row) return;
 
         const cells = row.children;
-        if (cells.length < 9) return; // Sicherstellen, dass genug Spalten da sind
 
-        // Standardzellen
-        cells[2].textContent = updatedData.used;
-        cells[3].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
-        cells[4].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
+        if(cells[2])
+            cells[2].textContent = updatedData.used;
+        if(cells[3])
+            cells[3].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
+        if(cells[4])
+            cells[4].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
 
-        // Timeout-Zelle (Spalte 5)
-        const timeoutCell = cells[5];
-        if (typeof updatedData.timeout === 'number') {
-            timeoutCell.dataset.timeout = updatedData.timeout;
-            const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
-            timeoutCell.textContent = seconds > 0 ? seconds + 's' : '-';
-        } else {
-            timeoutCell.textContent = '-';
-            delete timeoutCell.dataset.timeout;
+        if(cells[5]) {
+            const timeoutCell = cells[5];
+            if (typeof updatedData.timeout === 'number') {
+                timeoutCell.dataset.timeout = updatedData.timeout;
+                const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
+                timeoutCell.textContent = seconds > 0 ? seconds + 's' : '-';
+            } else {
+                timeoutCell.textContent = '-';
+                delete timeoutCell.dataset.timeout;
+            }
         }
 
-        const owned = ownUserData?.powerUps?.find(p =>
-            p.group === group && p.name === name)?.value || 0;
-        cells[6].textContent = owned;
+        if(cells[6])
+            cells[6].textContent = ownUserData?.powerUps?.find(p =>
+                p.group === group && p.name === name)?.value || 0;
     }
     
     function updatePowerUpTimeout() {
@@ -1611,8 +1616,7 @@
         const now = Date.now();
 
         cells.forEach(cell => {
-            const raw = cell.dataset.timeout;
-            const timeout = parseInt(raw);
+            const timeout = Number(cell.dataset.timeout);
 
             if (!timeout || isNaN(timeout)) {
                 cell.textContent = '-';
