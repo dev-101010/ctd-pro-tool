@@ -294,9 +294,48 @@
             box-sizing: border-box;
         }
 
+        .map-info-panel {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 4px 12px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .map-cell {
+            padding: 4px 6px;
+            border: 1px solid #333;
+            background-color: #222;
+        }
+
+        .map-cell.label {
+            font-weight: bold;
+            color: #aaa;
+            background-color: #1e1e1e;
+            text-align: right;
+        }
+
+        .map-cell.value {
+            color: #ccc;
+        }
+
         @keyframes spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
         }
 
         /*noinspection CssUnusedSymbol*/
@@ -366,12 +405,38 @@
     </div>
 
     <div class="tab-menu">
-        <button class="tab-button active" onclick="showTab(0)">Upgrade</button>
-        <button class="tab-button" onclick="showTab(1)">Tower Stats</button>
-        <button class="tab-button" onclick="showTab(2)">Tower Statistics</button>
+        <button class="tab-button active" onclick="showTab(0)">Map</button>
+        <button class="tab-button" onclick="showTab(1)">Upgrade</button>
+        <button class="tab-button" onclick="showTab(2)">Tower Stats</button>
+        <button class="tab-button" onclick="showTab(3)">Tower Statistics</button>
+        <button class="tab-button" onclick="showTab(4)">PowerUps</button>
     </div>
 
-    <div class="tab-content active">
+    <div class="tab-content active" id="mapTab">
+        <div class="map-info-panel">
+            <div class="map-grid">
+                <div class="map-cell label">Map:</div>
+                <div class="map-cell value" id="mapInfoName">–</div>
+
+                <div class="map-cell label">Typ:</div>
+                <div class="map-cell value" id="mapInfoType">–</div>
+
+                <div class="map-cell label">Größe:</div>
+                <div class="map-cell value" id="mapInfoSize">–</div>
+
+                <div class="map-cell label">Schwierigkeit:</div>
+                <div class="map-cell value" id="mapInfoDiff">–</div>
+
+                <div class="map-cell label">Spieler:</div>
+                <div class="map-cell value" id="mapInfoPlayersCombined">– / –</div>
+
+                <div class="map-cell label">Credits:</div>
+                <div class="map-cell value" id="mapInfoCredits">–</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
         <div class="header-bar">
             <div class="controls">
                 <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()"
@@ -409,7 +474,8 @@
         <div class="header-bar">
             <div class="controls">
                 <label for="statsUserSelect">User:</label>
-                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()" onchange="setStatsUid()">
+                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()"
+                        onchange="setStatsUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
             </div>
@@ -421,21 +487,32 @@
         <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
             <div class="controls">
                 <label for="statisticsUserSelect">User:</label>
-                <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()" onchange="setSelectedStatisticsUid()">
+                <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()"
+                        onchange="setSelectedStatisticsUid()">
                     <!-- Dynamisch befüllt -->
                 </select>
-                <button id="statModeToggle" title="Statistik Typ" class="profileButton" style="margin-left: 16px;" onclick="toggleStatisticMode()">Full</button>
+                <button id="statModeToggle" title="Statistik Typ" class="profileButton" style="margin-left: 16px;"
+                        onclick="toggleStatisticMode()">Full
+                </button>
             </div>
             <div class="controls">
                 <button onclick="triggerStatisticsRefresh()" title="Refresh" class="profileButton">🔁</button>
                 <div class="autoRefreshWrapper">
-                    <button id="autoRefreshToggle" title="Auto Refresh" onclick="toggleAutoRefresh()" class="profileButton autoRefreshBtn">🚘</button>
+                    <button id="autoRefreshToggle" title="Auto Refresh" onclick="toggleAutoRefresh()"
+                            class="profileButton autoRefreshBtn">🚘
+                    </button>
                     <div id="autoRefreshSpinner" class="spinnerOverlay" style="display: none;"></div>
                 </div>
             </div>
         </div>
 
         <div id="statisticsTableContainer"></div>
+    </div>
+
+    <div class="tab-content" id="powerUpsTab">
+        <div id="powerUpsContainer">
+            <!-- Tabelle wird dynamisch befüllt -->
+        </div>
     </div>
 
 </div>
@@ -495,7 +572,7 @@
         buttons[index].classList.add('active');
         contents[index].classList.add('active');
 
-        if (index === 2) triggerStatisticsRefresh();
+        if (index === 3) triggerStatisticsRefresh();
     }
 
     function startSocket(serverURI, userToken, authToken) {
@@ -521,8 +598,8 @@
             }
         });
 
-        socket.on("ding",(args) => {
-            socket.emit("dong",args);
+        socket.on("ding", (args) => {
+            socket.emit("dong", args);
             const icon = document.getElementById("ping");
 
             // noinspection JSUnusedLocalSymbols
@@ -576,17 +653,20 @@
             mapData = data;
             hasMap = true;
             updateMapInfo();
+            renderPowerUpsTable();
         });
 
         socket.on("mapClosed", (data, act) => {
             act();
             resetMap();
+            renderPowerUpsTable();
         });
 
         socket.on("mapCreditsChanged", (data, act) => {
             act();
             mapCredits = data.amount;
             updateCredits();
+            updateMapTabInfo();
         });
 
         socket.on("userTowerPlaced", (data, act) => {
@@ -598,6 +678,7 @@
                 updateCredits();
                 updateMapInfo();
             }
+            updateMapTabInfo();
         });
 
         socket.on("removeTower", (data, act) => {
@@ -618,6 +699,7 @@
                 renderStatsTable();
             }
             resetSelectFills();
+            updateMapTabInfo();
         });
 
         socket.on("towerMainValuesChanged", (data, act) => {
@@ -642,6 +724,29 @@
                 setProfileButtonsEnabled(true);
             }
             renderStatsTable();
+        });
+
+        socket.on("powerUpUsed", (data, act) => {
+            act();
+
+            const group = data.powerUp.group;
+            const name = data.powerUp.name;
+
+            const powerUpIdx = mapData.mapPowerUps.findIndex(
+                p => p.group === group && p.name === name
+            );
+            if (powerUpIdx >= 0) {
+                mapData.mapPowerUps[powerUpIdx] = data.powerUp;
+            }
+
+            if (ownUserId === data.user.uid) {
+                const reducePowerUp = ownUserData.powerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                if (reducePowerUp) {
+                    reducePowerUp.value = reducePowerUp.value - 1;
+                }
+            }
+
+            updatePowerUpRow(group, name, data.powerUp);
         });
     }
 
@@ -687,6 +792,25 @@
         updateMapInfo();
         resetOwnTower();
         resetSelectFills();
+    }
+
+    function updateMapTabInfo() {
+        const map = mapData.map ?? {};
+
+        const mapName = map.name ?? "–";
+        const mapType = map.mapType ?? "–";
+        const mapSize = (map.sizeX && map.sizeY) ? `${map.sizeX}x${map.sizeY}` : "–";
+        const mapDiff = map.difficulty ?? "–";
+        const maxPlayers = map.players ?? "–";
+        const activePlayerCount = Object.keys(towerMainValuesSet).length ?? 0;
+        const credits = mapCredits ?? "–";
+
+        document.getElementById("mapInfoName").textContent = mapName;
+        document.getElementById("mapInfoType").textContent = mapType;
+        document.getElementById("mapInfoSize").textContent = mapSize;
+        document.getElementById("mapInfoDiff").textContent = mapDiff;
+        document.getElementById("mapInfoPlayersCombined").textContent = `${activePlayerCount} / ${maxPlayers}`;
+        document.getElementById("mapInfoCredits").textContent = credits;
     }
 
     function fillSkillContainer() {
@@ -905,6 +1029,7 @@
         document.getElementById("mapName").textContent = mapName ?? "–";
         document.getElementById("towerName").textContent = towerName ?? "–";
         document.getElementById("towerLevel").textContent = (towerLevel ?? "–");
+        updateMapTabInfo();
     }
 
     function toggleButtonState() {
@@ -953,7 +1078,7 @@
         const skill = skillData.splice(0, 1);
         const name = skill[0];
         if (typeof name === 'string' && name) {
-            socket.emit('upgradeTower', { name });
+            socket.emit('upgradeTower', {name});
         }
         syncVisualWithSkillData(skillData);
     }
@@ -1041,45 +1166,53 @@
 
             headers.forEach(h => {
                 const td = document.createElement("td");
+                td.style.border = "1px solid #444";
 
-                if (h === "total") {
-                    const total = calculateStats(entry);
-                    td.textContent = formatValue(total);
-                    td.style.fontWeight = "bold";
-                    td.style.color = "limegreen";
-                } else if (h === "name") {
-                    td.textContent = entry[h];
-                    td.style.color = "#ccc";
-                } else if (h === "basic" || h === "upg") {
-                    td.textContent = formatValue(entry[h]);
-                    td.style.color = "#ffd700";
-                    td.style.backgroundColor = "#111";
-                } else {
-                    const percent = entry[h] ?? 0;
-                    const base = (entry.basic ?? 0) + (entry.upg ?? 0);
-                    const realValue = percent * base * 0.01;
+                switch (h) {
+                    case "total":
+                        const total = calculateStats(entry);
+                        td.textContent = formatValue(total);
+                        td.style.fontWeight = "bold";
+                        td.style.color = "limegreen";
+                        break;
 
-                    const wrapper = document.createElement("div");
-                    wrapper.style.display = "flex";
-                    wrapper.style.flexDirection = "column";
-                    wrapper.style.alignItems = "center";
+                    case "name":
+                        td.textContent = entry[h];
+                        td.style.color = "#ccc";
+                        break;
 
-                    const valueDiv = document.createElement("div");
-                    valueDiv.textContent = formatValue(realValue);
-                    valueDiv.style.color = "#ccc";
+                    case "basic":
+                    case "upg":
+                        td.textContent = formatValue(entry[h]);
+                        td.style.color = "#ffd700";
+                        td.style.backgroundColor = "#191919";
+                        break;
 
-                    const percentDiv = document.createElement("div");
-                    percentDiv.textContent = `(${formatValue(percent)}%)`;
-                    percentDiv.style.fontSize = "11px";
-                    percentDiv.style.color = "#888";
+                    default:
+                        const percent = entry[h] ?? 0;
+                        const base = (entry.basic ?? 0) + (entry.upg ?? 0);
+                        const realValue = percent * base * 0.01;
 
-                    wrapper.appendChild(valueDiv);
-                    wrapper.appendChild(percentDiv);
-                    td.appendChild(wrapper);
+                        const wrapper = document.createElement("div");
+                        wrapper.style.display = "flex";
+                        wrapper.style.flexDirection = "column";
+                        wrapper.style.alignItems = "center";
+
+                        const valueDiv = document.createElement("div");
+                        valueDiv.textContent = formatValue(realValue);
+                        valueDiv.style.color = "#ccc";
+
+                        const percentDiv = document.createElement("div");
+                        percentDiv.textContent = `(${formatValue(percent)}%)`;
+                        percentDiv.style.fontSize = "11px";
+                        percentDiv.style.color = "#888";
+
+                        wrapper.appendChild(valueDiv);
+                        wrapper.appendChild(percentDiv);
+                        td.appendChild(wrapper);
+                        break;
                 }
 
-
-                td.style.border = "1px solid #444";
                 td.style.padding = "4px";
                 td.style.textAlign = "center";
                 tr.appendChild(td);
@@ -1135,12 +1268,12 @@
         if (!uid) return;
 
         const eventName = statisticsMode === "wave" ? "getWaveStatistic" : "getStatistic";
-        socket.emit(eventName, { towerId: uid }, (res) => {
+        socket.emit(eventName, {towerId: uid}, (res) => {
             console.log(eventName, res);
 
             resetStatistics();
 
-            if(!res.statistics) return;
+            if (!res.statistics) return;
 
             const container = document.getElementById("statisticsTableContainer");
 
@@ -1271,10 +1404,10 @@
 
         const others = Object.keys(towerMainValuesSet)
             .filter(uid => parseInt(uid) !== ownUserId)
-            .map(uid => ({ uid, name: userDataSet[uid]?.displayname || "Unbekannt" }))
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unbekannt"}))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        others.forEach(({ uid, name }) => {
+        others.forEach(({uid, name}) => {
             const option = document.createElement("option");
             option.value = uid;
             option.textContent = name;
@@ -1303,10 +1436,10 @@
 
         const others = Object.keys(towerMainValuesSet)
             .filter(uid => parseInt(uid) !== ownUserId)
-            .map(uid => ({ uid, name: userDataSet[uid]?.displayname || "Unbekannt" }))
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unbekannt"}))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        others.forEach(({ uid, name }) => {
+        others.forEach(({uid, name}) => {
             const option = document.createElement("option");
             option.value = uid;
             option.textContent = name;
@@ -1348,6 +1481,149 @@
         }
     }
 
+    function renderPowerUpsTable() {
+        const container = document.getElementById('powerUpsContainer');
+        container.innerHTML = '';
+
+        if (!mapData?.mapPowerUps || !Array.isArray(mapData.mapPowerUps)) return;
+
+        const table = document.createElement('table');
+        table.style.borderCollapse = 'collapse';
+        table.style.width = '100%';
+        table.style.fontSize = '14px';
+
+        const headers = ['Group', 'Name', 'Used', 'Limit', 'UserLimit', 'Timeout', 'Owned', 'Einlösen'];
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            th.style.border = '1px solid #444';
+            th.style.padding = '4px';
+            th.style.backgroundColor = '#222';
+            th.style.color = '#ccc';
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        mapData.mapPowerUps.forEach(powerup => {
+            const tr = document.createElement('tr');
+
+            tr.dataset.group = powerup.group;
+            tr.dataset.name = powerup.name;
+
+            const values = [
+                powerup.group,
+                powerup.name,
+                powerup.used,
+                (powerup.limit > 0 ? powerup.limit : '-'),
+                (powerup.userLimit > 0 ? powerup.userLimit : '-')
+            ];
+
+            values.forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                td.style.border = '1px solid #444';
+                td.style.padding = '4px';
+                td.style.textAlign = 'center';
+                td.style.color = '#ccc';
+                tr.appendChild(td);
+            });
+
+            const timeoutCell = document.createElement('td');
+            timeoutCell.style.border = '1px solid #444';
+            timeoutCell.style.padding = '4px';
+            timeoutCell.style.textAlign = 'center';
+            timeoutCell.style.color = '#ccc';
+            timeoutCell.dataset.timeout = powerup.timeout || '';
+            timeoutCell.dataset.group = powerup.group;
+            timeoutCell.dataset.name = powerup.name;
+
+            const diff = powerup.timeout ? Math.floor((powerup.timeout - Date.now()) / 1000) : null;
+            timeoutCell.textContent = (diff && diff > 0) ? diff + 's' : '-';
+            tr.appendChild(timeoutCell);
+
+            const owned = ownUserData?.powerUps?.find(p => p.group === powerup.group && p.name === powerup.name)?.value || 0;
+            const tdOwned = document.createElement('td');
+            tdOwned.textContent = owned;
+            tdOwned.style.border = '1px solid #444';
+            tdOwned.style.padding = '4px';
+            tdOwned.style.textAlign = 'center';
+            tdOwned.style.color = '#ccc';
+            tr.appendChild(tdOwned);
+
+            const tdAction = document.createElement('td');
+            tdAction.style.border = '1px solid #444';
+            tdAction.style.padding = '4px';
+            tdAction.style.textAlign = 'center';
+
+            const btn = document.createElement('button');
+            btn.textContent = 'Use';
+            btn.onclick = () => {
+                socket.emit('usePowerUp', { group: powerup.group, name: powerup.name });
+            };
+
+            tdAction.appendChild(btn);
+            tr.appendChild(tdAction);
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    function updatePowerUpRow(group, name, updatedData) {
+        const row = document.querySelector(
+            `#powerUpsContainer tr[data-group="${group}"][data-name="${name}"]`
+        );
+        if (!row) return;
+
+        const cells = row.children;
+        if (cells.length < 9) return; // Sicherstellen, dass genug Spalten da sind
+
+        // Standardzellen
+        cells[2].textContent = updatedData.used;
+        cells[3].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
+        cells[4].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
+
+        // Timeout-Zelle (Spalte 5)
+        const timeoutCell = cells[5];
+        if (typeof updatedData.timeout === 'number') {
+            timeoutCell.dataset.timeout = updatedData.timeout;
+            const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
+            timeoutCell.textContent = seconds > 0 ? seconds + 's' : '-';
+        } else {
+            timeoutCell.textContent = '-';
+            delete timeoutCell.dataset.timeout;
+        }
+
+        const owned = ownUserData?.powerUps?.find(p =>
+            p.group === group && p.name === name)?.value || 0;
+        cells[6].textContent = owned;
+    }
+    
+    function updatePowerUpTimeout() {
+        const cells = document.querySelectorAll('#powerUpsContainer td[data-timeout]');
+        const now = Date.now();
+
+        cells.forEach(cell => {
+            const raw = cell.dataset.timeout;
+            const timeout = parseInt(raw);
+
+            if (!timeout || isNaN(timeout)) {
+                cell.textContent = '-';
+                return;
+            }
+
+            const seconds = Math.floor((timeout - now) / 1000);
+            cell.textContent = (seconds > 0) ? seconds + 's' : '-';
+        });
+    }
+
     function showToast(message, type = "info") {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -1373,7 +1649,6 @@
 
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-            console.log("Tab wieder sichtbar – Loop prüfen");
             if (isRunning && loopInterval === null) {
                 startLoop();
             }
@@ -1419,6 +1694,8 @@
         loadProfiles();
 
         startSocket(serverURI, userToken, authToken);
+
+        setInterval(updatePowerUpTimeout, 1000)
 
     });
 </script>
