@@ -640,8 +640,8 @@
                 hasTower = true;
                 setToggleButtonEnabled(true);
                 setProfileButtonsEnabled(true);
-                renderStatsTable();
             }
+            renderStatsTable();
         });
     }
 
@@ -974,8 +974,8 @@
         const allBoxes = document.querySelectorAll('.box');
 
         allBoxes.forEach(box => {
-            const index = Number(box.dataset.index); // Spalte
-            const skillIdx = Number(box.dataset.skill); // Zeile
+            const index = Number(box.dataset.index);
+            const skillIdx = Number(box.dataset.skill);
             const expectedSkillName = skillArray[index];
 
             const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.name;
@@ -1050,13 +1050,34 @@
                 } else if (h === "name") {
                     td.textContent = entry[h];
                     td.style.color = "#ccc";
-                } else if (h === "upg" || h === "basic") {
+                } else if (h === "basic" || h === "upg") {
                     td.textContent = formatValue(entry[h]);
-                    td.style.color = "#ccc";
+                    td.style.color = "#ffd700";
+                    td.style.backgroundColor = "#111";
                 } else {
-                    td.textContent = formatValue(entry[h])+"%";
-                    td.style.color = "#ccc";
+                    const percent = entry[h] ?? 0;
+                    const base = (entry.basic ?? 0) + (entry.upg ?? 0);
+                    const realValue = percent * base * 0.01;
+
+                    const wrapper = document.createElement("div");
+                    wrapper.style.display = "flex";
+                    wrapper.style.flexDirection = "column";
+                    wrapper.style.alignItems = "center";
+
+                    const valueDiv = document.createElement("div");
+                    valueDiv.textContent = formatValue(realValue);
+                    valueDiv.style.color = "#ccc";
+
+                    const percentDiv = document.createElement("div");
+                    percentDiv.textContent = `(${formatValue(percent)}%)`;
+                    percentDiv.style.fontSize = "11px";
+                    percentDiv.style.color = "#888";
+
+                    wrapper.appendChild(valueDiv);
+                    wrapper.appendChild(percentDiv);
+                    td.appendChild(wrapper);
                 }
+
 
                 td.style.border = "1px solid #444";
                 td.style.padding = "4px";
