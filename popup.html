@@ -1691,7 +1691,14 @@
         }
     });
 
+    const expectedOrigin = location.origin;
     window.addEventListener("message", (event) => {
+
+        if (event.origin !== expectedOrigin) {
+            console.warn("Blocked message from unknown origin:", event.origin);
+            return;
+        }
+
         const data = event.data || {};
 
         // Assign values if present
@@ -1710,7 +1717,7 @@
     window.addEventListener("DOMContentLoaded", () => {
         try {
             if (window.opener) {
-                window.opener.postMessage("REQUEST_USER_DATA", "*");
+                window.opener.postMessage("REQUEST_USER_DATA", location.origin);
             } else {
                 console.warn("No opener window available.");
             }
