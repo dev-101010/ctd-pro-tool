@@ -823,11 +823,15 @@
 
     function fillSkillContainer() {
         skillBuilded = true;
-        towerUpgradeDataSet[ownUserId].forEach((data, idx) => {
-            const name = data.name;
-            const upgradeable = data.upgradeable;
-            if (name && upgradeable) createSkillRow(data, idx);
-        });
+        const towerData = towerMainValuesSet[ownUserId];
+        const towerUpgrades = towerUpgradeDataSet[ownUserId];
+        if(towerUpgrades) {
+            towerUpgrades.forEach((data, idx) => {
+                const name = data.name;
+                const upgradeable = data.upgradeable;
+                if (towerID && name && upgradeable) createSkillRow(towerData.tower, data, idx);
+            });
+        }
     }
 
     function clearSkillContainer() {
@@ -836,13 +840,14 @@
         }
     }
 
-    function createSkillRow(skill, skillIndex) {
+    function createSkillRow(towerID, skill, skillIndex) {
         const row = document.createElement('div');
         row.className = 'skill-row';
 
         const label = document.createElement('div');
         label.className = 'skill-name';
-        const name = towerUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
+        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID);
+        const name = towerUpgradeUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
         const limit = skill.limit ? skill.limit : "∞";
         label.textContent = `${name} ${skill.count}/${limit}`;
         row.appendChild(label);
