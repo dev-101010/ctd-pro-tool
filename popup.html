@@ -550,6 +550,7 @@
     let statsSelectFilled = false;
     let statisticsMode = "full";
 
+    const language = "de";
     let towerUiTemplates = null;
     let powerUpUiTemplates = null;
     let towerTargetModes = null;
@@ -643,7 +644,7 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
-            socket.emit("getUiTemplates", {language: "de"}, (res) => {
+            socket.emit("getUiTemplates", {language}, (res) => {
                 console.log("getUiTemplates", res);
                 towerUiTemplates = res.towerUiTemplates;
                 powerUpUiTemplates = res.powerUpUiTemplates;
@@ -841,8 +842,9 @@
 
         const label = document.createElement('div');
         label.className = 'skill-name';
+        const name = towerUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
         const limit = skill.limit ? skill.limit : "∞";
-        label.textContent = `${skill.name} ${skill.count}/${limit}`;
+        label.textContent = `${name} ${skill.count}/${limit}`;
         row.appendChild(label);
 
         // Buttons erzeugen
