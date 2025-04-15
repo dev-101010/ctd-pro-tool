@@ -411,22 +411,22 @@
     <div class="tab-content active" id="mapTab">
         <div class="map-info-panel">
             <div class="map-grid">
-                <div class="map-cell label">Map:</div>
+                <div class="map-cell label" data-lang="map">Map:</div>
                 <div class="map-cell value" id="mapInfoName">–</div>
 
-                <div class="map-cell label">Typ:</div>
+                <div class="map-cell label" data-lang="typ">Typ:</div>
                 <div class="map-cell value" id="mapInfoType">–</div>
 
-                <div class="map-cell label">Size:</div>
+                <div class="map-cell label" data-lang="size">Size:</div>
                 <div class="map-cell value" id="mapInfoSize">–</div>
 
-                <div class="map-cell label">Difficulty:</div>
+                <div class="map-cell label" data-lang="difficulty">Difficulty:</div>
                 <div class="map-cell value" id="mapInfoDiff">–</div>
 
-                <div class="map-cell label">Player:</div>
+                <div class="map-cell label" data-lang="player">Player:</div>
                 <div class="map-cell value" id="mapInfoPlayersCombined">– / –</div>
 
-                <div class="map-cell label">Credits:</div>
+                <div class="map-cell label" data-lang="credits">Credits:</div>
                 <div class="map-cell value" id="mapInfoCredits">–</div>
             </div>
         </div>
@@ -1731,8 +1731,16 @@
         const dict = translations[language] || translations["en"];
         document.querySelectorAll("[data-lang]").forEach(el => {
             const key = el.getAttribute("data-lang");
-            const value = dict[key];
-            el.textContent = typeof value === "function" ? value() : (value || key);
+            const value = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
+
+            // Nur den ersten Textknoten anpassen, nicht das ganze Element
+            const textNode = Array.from(el.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+            if (textNode) {
+                textNode.textContent = value;
+            } else {
+                // Falls kein Textknoten vorhanden ist, füge einen neuen ein
+                el.insertBefore(document.createTextNode(value), el.firstChild);
+            }
         });
     }
 
