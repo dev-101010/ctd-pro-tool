@@ -36,6 +36,7 @@
 
             sessionStorage.setItem("userToken", userToken);
             sessionStorage.setItem("authToken", authToken);
+            sessionStorage.setItem("language", language);
             window.open(blobUrl, "_blank", "width=800,height=400");
 
         });
