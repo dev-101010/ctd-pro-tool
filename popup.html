@@ -963,7 +963,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Please select profile or create new one.", "info");
+            showToast(lang("select_profile_msg"), "info");
             return;
         }
 
@@ -971,7 +971,7 @@
         profiles[selectedName] = skillData;
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
-        showToast("Profile saved.", "success");
+        showToast(lang("profile_saved_msg"), "success");
     }
 
     function loadProfile() {
@@ -980,7 +980,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Please select a profile.", "info");
+            showToast(lang("select_profile_msg"), "info");
             return;
         }
 
@@ -993,21 +993,21 @@
                 skillData[i] = val || null;
             });
             syncVisualWithSkillData(skillData);
-            showToast("Profile loaded.", "success");
+            showToast(lang("profile_loaded_msg"), "success");
         } else {
-            showToast("Failed to load profile.", "error");
+            showToast(lang("profile_load_failed_msg"), "error");
         }
     }
 
     function newProfile() {
-        const name = prompt("New profile name:");
+        const name = prompt(lang("new_profile_name_msg"));
         if (!name) return;
 
         const profileSelect = document.getElementById("profileSelect");
         const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
 
         if (profiles[name]) {
-            showToast("Profile name already exist.", "error");
+            showToast(lang("profile_name_exists_msg"), "error");
             return;
         }
 
@@ -1020,7 +1020,7 @@
         profileSelect.appendChild(option);
         profileSelect.value = name;
 
-        showToast("Profile created.", "success");
+        showToast(lang("profile_created_msg"), "success");
     }
 
     function deleteProfile() {
@@ -1028,11 +1028,11 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Pleas select profile to delete.", "info");
+            showToast(lang("select_profile_delete_msg"), "info");
             return;
         }
 
-        if (!confirm(`You really want to delete "${selectedName}"?`)) {
+        if (!confirm(lang("profile_really_delete_msg",selectedName))) {
             return;
         }
 
@@ -1041,7 +1041,7 @@
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
         loadProfiles(); // Refresh select field
-        showToast("Profile deleted.", "success");
+        showToast(lang("profile_deleted_msg"), "success");
     }
 
     function updateMapInfo() {
@@ -1178,7 +1178,7 @@
 
         headers.forEach(h => {
             const th = document.createElement("th");
-            th.textContent = h;
+            th.textContent = lang("stats_"+h);
             th.style.border = "1px solid #444";
             th.style.padding = "4px";
             th.style.backgroundColor = "#222";
@@ -1277,7 +1277,7 @@
 
     function randomizeSkillData() {
         if (!hasTower || !Array.isArray(towerUpgradeDataSet[ownUserId])) {
-            showToast("No tower data available.", "error");
+            showToast(lang("no_tower_data_msg"), "error");
             return;
         }
 
@@ -1287,7 +1287,7 @@
             .map(s => s.name);
 
         if (validSkills.length === 0) {
-            showToast("No valid skills available.", "error");
+            showToast(lang("no_valid_skill_msg"), "error");
             return;
         }
 
@@ -1298,7 +1298,7 @@
         }
 
         syncVisualWithSkillData(skillData);
-        showToast("Random skill selection executed.", "success");
+        showToast(lang("random_skill_selection_msg"), "success");
     }
 
     function triggerStatisticsRefresh() {
@@ -1379,7 +1379,7 @@
         statisticsMode = statisticsMode === "full" ? "wave" : "full";
 
         const button = document.getElementById("statModeToggle");
-        button.textContent = statisticsMode.charAt(0).toUpperCase() + statisticsMode.slice(1);
+        button.textContent = lang(statisticsMode);
 
         if (statisticsUid) {
             loadStatistics(statisticsUid);
@@ -1542,7 +1542,7 @@
         table.style.width = '100%';
         table.style.fontSize = '14px';
 
-        const headers = ['Name', 'Active', 'Limit', 'UserLimit', 'Timeout', 'Owned', ''];
+        const headers = [lang("pwrup_name"), lang("pwrup_active"), lang("pwrup_limit"), lang("pwrup_userLimit"), lang("pwrup_timeout"), lang("pwrup_owned"), ''];
         const thead = document.createElement('thead');
         const trHead = document.createElement('tr');
         headers.forEach(h => {
@@ -1612,7 +1612,7 @@
             tdAction.style.textAlign = 'center';
 
             const btn = document.createElement('button');
-            btn.textContent = 'Use';
+            btn.textContent = lang("pwrup_use");
             btn.onclick = () => {
                 socket.emit('usePowerUp', { group: powerUp.group, name: powerUp.name });
             };
@@ -1819,23 +1819,37 @@
             auto_refresh: "Auto Refresh",
             refresh_statistics: "Refresh",
 
-            delete_profile_confirm: "Are you sure you want to delete this profile?",
-            delete_profile_success: "Profile deleted successfully.",
-            delete_profile_error: "Failed to delete profile.",
-            save_profile_success: "Profile saved successfully.",
-            save_profile_error: "Failed to save profile.",
-            profile_name: "Profile Name",
-            profile_name_placeholder: "Enter a name for this profile",
-            newProfilePrompt: "New profile name:",
-            profileExists: "Profile name already exist.",
-            profileCreated: "Profile created.",
-            pleaseSelectProfile: "Please select a profile.",
-            profileSaved: "Profile saved.",
-            profileDeleted: "Profile deleted.",
-            confirmDelete: name => `You really want to delete "${name}"?`,
-            noTowerData: "No tower data available.",
-            noValidSkills: "No valid skills available.",
-            randomSkillDone: "Random skill selection executed.",
+            pwrup_name: "Name",
+            pwrup_active: "Active",
+            pwrup_limit: "Limit",
+            pwrup_userLimit: "User Limit",
+            pwrup_timeout: "Timeout",
+            pwrup_owned: "Owned",
+            pwrup_use: "Use",
+
+            stats_name: "Name",
+            stats_total: "Total",
+            stats_basic: "Basic",
+            stats_upg: "Upgrade",
+            stats_skill: "Skill",
+            stats_boost: "Boost",
+            stats_buff: "Buff",
+            stats_team: "Team",
+            stats_item: "Item",
+
+            select_profile_msg: "Please select profile or create new one.",
+            profile_saved_msg: "Profile saved.",
+            profile_loaded_msg: "Profile loaded.",
+            profile_load_failed_msg: "Failed to load profile.",
+            new_profile_name_msg: "New profile name:",
+            profile_name_exists_msg: "Profile name already exists.",
+            profile_created_msg: "Profile created.",
+            select_profile_delete_msg: "Please select profile to delete.",
+            profile_really_delete_msg: name => `You really want to delete "${name}"?`,
+            profile_deleted_msg: "Profile deleted.",
+            no_tower_data_msg: "No tower data available.",
+            no_valid_skill_msg: "No valid skills available.",
+            random_skill_selection_msg: "Random skill selection executed."
         },
         de: {
             loading: "Daten werden geladen...",
@@ -1870,24 +1884,37 @@
             auto_refresh: "Automatisch aktualisieren",
             refresh: "Aktualisieren",
 
+            pwrup_name: "Name",
+            pwrup_active: "Aktiv",
+            pwrup_limit: "Limit",
+            pwrup_userLimit: "Ben. Limit",
+            pwrup_timeout: "Auszeit",
+            pwrup_owned: "Besitz",
+            pwrup_use: "Verwenden",
 
-            delete_profile_confirm: "Are you sure you want to delete this profile?",
-            delete_profile_success: "Profile deleted successfully.",
-            delete_profile_error: "Failed to delete profile.",
-            save_profile_success: "Profile saved successfully.",
-            save_profile_error: "Failed to save profile.",
-            profile_name: "Profile Name",
-            profile_name_placeholder: "Enter a name for this profile",
-            newProfilePrompt: "Name für neues Profil:",
-            profileExists: "Profilname existiert bereits.",
-            profileCreated: "Profil erstellt.",
-            pleaseSelectProfile: "Bitte ein Profil auswählen.",
-            profileSaved: "Profil gespeichert.",
-            profileDeleted: "Profil gelöscht.",
-            confirmDelete: name => `Willst du "${name}" wirklich löschen?`,
-            noTowerData: "Keine Turmdaten verfügbar.",
-            noValidSkills: "Keine gültigen Skills verfügbar.",
-            randomSkillDone: "Zufällige Skill-Auswahl durchgeführt.",
+            stats_name: "Name",
+            stats_total: "Total",
+            stats_basic: "Basic",
+            stats_upg: "Upgrade",
+            stats_skill: "Skill",
+            stats_boost: "Boost",
+            stats_buff: "Buff",
+            stats_team: "Team",
+            stats_item: "Item",
+
+            select_profile_msg: "Bitte wähle ein Profil aus oder erstelle ein neues.",
+            profile_saved_msg: "Profil gespeichert.",
+            profile_loaded_msg: "Profil geladen.",
+            profile_load_failed_msg: "Profil konnte nicht geladen werden.",
+            new_profile_name_msg: "Name des neuen Profils:",
+            profile_name_exists_msg: "Profilname existiert bereits.",
+            profile_created_msg: "Profil erstellt.",
+            select_profile_delete_msg: "Bitte wähle ein Profil zum Löschen aus.",
+            profile_really_delete_msg: name => `Möchtest du "${name}" wirklich löschen?`,
+            profile_deleted_msg: "Profil gelöscht.",
+            no_tower_data_msg: "Keine Turmdaten verfügbar.",
+            no_valid_skill_msg: "Keine gültigen Fähigkeiten verfügbar.",
+            random_skill_selection_msg: "Zufällige Fähigkeitenauswahl durchgeführt."
         }
     };
 </script>
