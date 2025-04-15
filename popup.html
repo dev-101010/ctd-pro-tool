@@ -1696,18 +1696,18 @@
             userToken = window.opener?.sessionStorage.getItem("userToken") || "";
             domain = window.opener?.location.hostname;
         } catch (e) {
-            console.error("Zugriff auf Daten fehlgeschlagen!");
+            console.error("Data access failed.");
             return;
         }
 
         try{
             language = window.opener?.sessionStorage.getItem("userLanguage") || "en";
         } catch (e) {
-            console.error("Zugriff auf Sprache fehlgeschlagen! Bitte Script updaten.");
+            console.error("Language access failed. Please update Script.");
         }
 
         if (!userToken || !authToken) {
-            console.error("Kein Token gefunden!");
+            console.error("No userToken found.");
             return;
         }
 
@@ -1723,7 +1723,7 @@
         }
 
         if (!serverURI) {
-            console.error("Unbekannte Domain!");
+            console.error("Unknown Domain.");
             return;
         }
 
