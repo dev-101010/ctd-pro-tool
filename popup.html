@@ -1692,13 +1692,18 @@
         let domain = "";
 
         try {
-            authToken = window.opener?.sessionStorage.getItem("authToken");
-            userToken = window.opener?.sessionStorage.getItem("userToken");
-            language = window.opener?.sessionStorage.getItem("userLanguage");
+            authToken = window.opener?.sessionStorage.getItem("authToken") || "";
+            userToken = window.opener?.sessionStorage.getItem("userToken") || "";
             domain = window.opener?.location.hostname;
         } catch (e) {
             console.error("Zugriff auf Daten fehlgeschlagen!");
             return;
+        }
+
+        try{
+            language = window.opener?.sessionStorage.getItem("userLanguage") || "en";
+        } catch (e) {
+            console.error("Zugriff auf Sprache fehlgeschlagen! Bitte Script updaten.");
         }
 
         if (!userToken || !authToken) {
