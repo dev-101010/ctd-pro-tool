@@ -644,14 +644,16 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
+            initStatisticsSelectDisplay();
+            initStatsSelectDisplay();
+
             socket.emit("getUiTemplates", {language}, (res) => {
                 console.log("getUiTemplates", res);
                 towerUiTemplates = res.towerUiTemplates;
                 powerUpUiTemplates = res.powerUpUiTemplates;
                 towerTargetModes = res.towerTargetModes;
 
-                initStatisticsSelectDisplay();
-                initStatsSelectDisplay();
+                renderPowerUpsTable();
             });
         });
 
@@ -1146,6 +1148,9 @@
 
     function renderStatsTable() {
         const uid = statsUid ?? ownUserId;
+        const towerId = towerMainValuesSet[uid]?.tower;
+        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerId)?.upgrades;
+
         const container = document.getElementById("statsTableContainer");
         container.innerHTML = "";
 
@@ -1193,7 +1198,8 @@
                         break;
 
                     case "name":
-                        td.textContent = entry[h];
+                        const readName = towerUpgradeUiTemplates?.find(x => x.name === entry[h])?.readName || entry[h];
+                        td.textContent = readName;
                         td.style.color = "#ccc";
                         break;
 
@@ -1289,7 +1295,7 @@
 
             resetStatistics();
 
-            if (!res.statistics) return;
+            if (!res.statistics || !res.tower) return;
 
             const container = document.getElementById("statisticsTableContainer");
 
@@ -1316,8 +1322,11 @@
                 item.style.fontSize = "13px";
                 item.style.color = "#ccc";
 
+                const towerStatisticsUiTemplates = towerUiTemplates?.find(x => x.tower === res.tower.tower)?.statistics;
+                const readName = towerStatisticsUiTemplates?.find(x => x.name === entry.name)?.readName || entry.name;
+
                 const name = document.createElement("div");
-                name.textContent = entry.name;
+                name.textContent = readName;
                 name.style.fontWeight = "bold";
                 name.style.marginBottom = "4px";
 
@@ -1508,7 +1517,7 @@
         table.style.width = '100%';
         table.style.fontSize = '14px';
 
-        const headers = ['Group', 'Name', 'Active', 'Limit', 'UserLimit', 'Timeout', 'Owned', ''];
+        const headers = ['Name', 'Active', 'Limit', 'UserLimit', 'Timeout', 'Owned', ''];
         const thead = document.createElement('thead');
         const trHead = document.createElement('tr');
         headers.forEach(h => {
@@ -1531,9 +1540,10 @@
             tr.dataset.group = powerup.group;
             tr.dataset.name = powerup.name;
 
+            const readName = powerUpUiTemplates?.find(u => u.group === powerup.group && u.name === powerup.name).readName || powerup.group + " - " + powerup.name;
+
             const values = [
-                powerup.group,
-                powerup.name,
+                readName,
                 powerup.used,
                 (powerup.limit > 0 ? powerup.limit : '-'),
                 (powerup.userLimit > 0 ? powerup.userLimit : '-')
