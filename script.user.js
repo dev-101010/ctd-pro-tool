@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         C-TD Pro Tool
 // @namespace    https://dev-101010.de/ctdt/script.user.js
-// @version      0.13
+// @version      0.15
 // @description  C-TD Pro Tool
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield
@@ -34,16 +34,22 @@
             const blob = new Blob([html], { type: "text/html" });
             const blobUrl = URL.createObjectURL(blob);
 
+            const allowedOrigin = location.origin;
+
             window.addEventListener("message", (event) => {
                 if (event.data === "REQUEST_USER_DATA") {
-                    try {
-                        event.source?.postMessage({
-                            userLanguage,
-                            authToken,
-                            userToken
-                        }, "*");
-                    } catch (e) {
-                        console.error("Failed to send user data to popup:", e);
+                    if (event.source && event.origin === allowedOrigin) {
+                        try {
+                            event.source.postMessage({
+                                userLanguage,
+                                authToken,
+                                userToken
+                            }, allowedOrigin);
+                        } catch (e) {
+                            console.error("Failed to send data via postMessage:", e);
+                        }
+                    } else {
+                        console.warn("Blocked message request from unknown origin:", event.origin);
                     }
                 }
             });
