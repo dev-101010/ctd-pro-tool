@@ -550,6 +550,10 @@
     let statsSelectFilled = false;
     let statisticsMode = "full";
 
+    let towerUiTemplates = null;
+    let powerUpUiTemplates = null;
+    let towerTargetModes = null;
+
     const skillData = [];
 
     const loadingMessage = document.getElementById("loadingMessage");
@@ -639,8 +643,15 @@
             ownUserId = data.user.uid;
             ownUserData = data;
 
-            initStatisticsSelectDisplay();
-            initStatsSelectDisplay();
+            socket.emit("getUiTemplates", {language: "de"}, (res) => {
+                console.log("getUiTemplates", res);
+                towerUiTemplates = res.towerUiTemplates;
+                powerUpUiTemplates = res.powerUpUiTemplates;
+                towerTargetModes = res.towerTargetModes;
+
+                initStatisticsSelectDisplay();
+                initStatsSelectDisplay();
+            });
         });
 
         socket.on("mapLoaded", (data, act) => {
