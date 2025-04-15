@@ -394,39 +394,39 @@
 
     <div id="mapInfoBar" class="map-info-bar">
         <span id="ping">⬤</span>
-        <span class="info-block" data-lang="user"><span id="userName">–</span></span>
-        <span class="info-block" data-lang="map"><span id="mapName">–</span></span>
-        <span class="info-block" data-lang="tower"><span id="towerName">–</span></span>
-        <span class="info-block" data-lang="level"><span id="towerLevel">–</span></span>
+        <div><span class="info-block" data-lang="user_"></span><span id="userName">–</span></div>
+        <div><span class="info-block" data-lang="map_"></span><span id="mapName">–</span></div>
+        <div><span class="info-block" data-lang="tower_"></span><span id="towerName">–</span></div>
+        <div><span class="info-block" data-lang="level_"></span><span id="towerLevel">–</span></div>
     </div>
 
     <div class="tab-menu">
-        <button class="tab-button active" onclick="showTab(0)">Map</button>
-        <button class="tab-button" onclick="showTab(1)">Upgrade</button>
-        <button class="tab-button" onclick="showTab(2)">Tower Stats</button>
-        <button class="tab-button" onclick="showTab(3)">Tower Statistics</button>
-        <button class="tab-button" onclick="showTab(4)">PowerUps</button>
+        <button class="tab-button active" data-lang="map" onclick="showTab(0)"></button>
+        <button class="tab-button" data-lang="upgrade" onclick="showTab(1)"></button>
+        <button class="tab-button" data-lang="tower_stats" onclick="showTab(2)"></button>
+        <button class="tab-button" data-lang="tower_statistics" onclick="showTab(3)"></button>
+        <button class="tab-button" data-lang="power_ups" onclick="showTab(4)"></button>
     </div>
 
     <div class="tab-content active" id="mapTab">
         <div class="map-info-panel">
             <div class="map-grid">
-                <div class="map-cell label" data-lang="map">Map:</div>
+                <div class="map-cell label" data-lang="name_"></div>
                 <div class="map-cell value" id="mapInfoName">–</div>
 
-                <div class="map-cell label" data-lang="typ">Typ:</div>
+                <div class="map-cell label" data-lang="typ_"></div>
                 <div class="map-cell value" id="mapInfoType">–</div>
 
-                <div class="map-cell label" data-lang="size">Size:</div>
+                <div class="map-cell label" data-lang="size_"></div>
                 <div class="map-cell value" id="mapInfoSize">–</div>
 
-                <div class="map-cell label" data-lang="difficulty">Difficulty:</div>
+                <div class="map-cell label" data-lang="difficulty_"></div>
                 <div class="map-cell value" id="mapInfoDiff">–</div>
 
-                <div class="map-cell label" data-lang="player">Player:</div>
+                <div class="map-cell label" data-lang="player_"></div>
                 <div class="map-cell value" id="mapInfoPlayersCombined">– / –</div>
 
-                <div class="map-cell label" data-lang="credits">Credits:</div>
+                <div class="map-cell label" data-lang="credits_"></div>
                 <div class="map-cell value" id="mapInfoCredits">–</div>
             </div>
         </div>
@@ -435,27 +435,30 @@
     <div class="tab-content">
         <div class="header-bar">
             <div class="controls">
-                <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()"
-                        style="background-color: green;">Start
+                <button id="toggleStartStop" data-tool-lang="start_stop" onclick="toggleButtonState()"
+                        style="background-color: green;" data-lang="start">
                 </button>
-                <button id="randomButton" class="profileButton" title="Select random" onclick="randomizeSkillData()">
+                <button id="randomButton" class="profileButton" data-tool-lang="select_random" onclick="randomizeSkillData()">
                     🎲
                 </button>
             </div>
-            <div>Credits: <span id="openCredits">0</span>/<span id="neededCredits">0</span></div>
+            <div>
+                <span data-lang="credits_"></span>
+                <span id="openCredits">0</span> / <span id="neededCredits">0</span>
+            </div>
             <div class="controls">
-                <label for="profileSelect">Profiles:</label>
-                <select title="Select profile" id="profileSelect">
+                <label for="profileSelect" data-lang="profiles_"></label>
+                <select data-tool-lang="select_profile" id="profileSelect">
                     <!-- Filled dynamic -->
                 </select>
-                <button id="newProfileButton" title="Create new profile" class="profileButton" onclick="newProfile()">➕
+                <button id="newProfileButton" data-tool-lang="create_profile" class="profileButton" onclick="newProfile()">➕
                 </button>
-                <button id="deleteProfileButton" title="Delete profile" class="profileButton" onclick="deleteProfile()">
+                <button id="deleteProfileButton" data-tool-lang="delete_profile" class="profileButton" onclick="deleteProfile()">
                     🗑️
                 </button>
-                <button id="loadProfileButton" title="Load profile" class="profileButton" onclick="loadProfile()">📂
+                <button id="loadProfileButton" data-tool-lang="load_profile" class="profileButton" onclick="loadProfile()">📂
                 </button>
-                <button id="saveProfileButton" title="Save profile" class="profileButton" onclick="saveProfile()">
+                <button id="saveProfileButton" data-tool-lang="save_profile" class="profileButton" onclick="saveProfile()">
                     💾
                 </button>
             </div>
@@ -469,7 +472,7 @@
     <div class="tab-content">
         <div class="header-bar">
             <div class="controls">
-                <label for="statsUserSelect">User:</label>
+                <label for="statsUserSelect" data-lang="user_"></label>
                 <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()"
                         onchange="setStatsUid()">
                     <!-- Dynamic filled -->
@@ -482,20 +485,19 @@
     <div class="tab-content">
         <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
             <div class="controls">
-                <label for="statisticsUserSelect">User:</label>
+                <label for="statisticsUserSelect" data-lang="user_"></label>
                 <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()"
                         onchange="setSelectedStatisticsUid()">
                     <!-- Dynamic filled -->
                 </select>
-                <button id="statModeToggle" title="Change type" class="profileButton" style="margin-left: 16px;"
-                        onclick="toggleStatisticMode()">Full
+                <button id="statModeToggle" data-tool-lang="change_type" class="profileButton" style="margin-left: 16px;"
+                        onclick="toggleStatisticMode()" data-lang="full">
                 </button>
             </div>
             <div class="controls">
-                <button onclick="triggerStatisticsRefresh()" title="Refresh" class="profileButton">🔁</button>
-                <div class="autoRefreshWrapper">
-                    <button id="autoRefreshToggle" title="Auto Refresh" onclick="toggleAutoRefresh()"
-                            class="profileButton autoRefreshBtn">🚘
+                <button onclick="triggerStatisticsRefresh()" data-tool-lang="refresh" class="profileButton">🔁</button>
+                <div class="autoRefreshWrapper" data-tool-lang="auto_refresh">
+                    <button id="autoRefreshToggle" onclick="toggleAutoRefresh()" class="profileButton autoRefreshBtn">🚘
                     </button>
                     <div id="autoRefreshSpinner" class="spinnerOverlay" style="display: none;"></div>
                 </div>
@@ -1060,10 +1062,10 @@
         isRunning = !isRunning;
         const btn = document.getElementById("toggleStartStop");
         if (isRunning) {
-            btn.textContent = "Stop";
+            btn.textContent = lang("stop");
             btn.style.backgroundColor = "red";
         } else {
-            btn.textContent = "Start";
+            btn.textContent = lang("start");
             btn.style.backgroundColor = "green";
         }
 
@@ -1190,6 +1192,7 @@
 
         stats.forEach(entry => {
             const tr = document.createElement("tr");
+            const towerUpgradeCount = towerUpgradeDataSet[uid]?.find(x => x.name === entry.name)?.count;
 
             headers.forEach(h => {
                 const td = document.createElement("td");
@@ -1210,10 +1213,29 @@
                         break;
 
                     case "basic":
-                    case "upg":
                         td.textContent = formatValue(entry[h]);
                         td.style.color = "#ffd700";
                         td.style.backgroundColor = "#191919";
+                        break;
+
+                    case "upg":
+                        const wrapper1 = document.createElement("div");
+                        wrapper1.style.display = "flex";
+                        wrapper1.style.flexDirection = "column";
+                        wrapper1.style.alignItems = "center";
+
+                        const valueDiv1 = document.createElement("div");
+                        valueDiv1.textContent = formatValue(entry[h]);
+                        valueDiv1.style.color = "#ccc";
+
+                        const upgradesDiv1 = document.createElement("div");
+                        upgradesDiv1.textContent = `(${towerUpgradeCount})`;
+                        upgradesDiv1.style.fontSize = "11px";
+                        upgradesDiv1.style.color = "#888";
+
+                        wrapper1.appendChild(valueDiv1);
+                        wrapper1.appendChild(upgradesDiv1);
+                        td.appendChild(wrapper1);
                         break;
 
                     default:
@@ -1280,10 +1302,7 @@
     }
 
     function triggerStatisticsRefresh() {
-        if (!statisticsUid) {
-            showToast("No user selected.", "info");
-            return;
-        }
+        if (!statisticsUid) return;
         loadStatistics(statisticsUid);
     }
 
@@ -1731,16 +1750,11 @@
         const dict = translations[language] || translations["en"];
         document.querySelectorAll("[data-lang]").forEach(el => {
             const key = el.getAttribute("data-lang");
-            const value = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
-
-            // Nur den ersten Textknoten anpassen, nicht das ganze Element
-            const textNode = Array.from(el.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
-            if (textNode) {
-                textNode.textContent = value;
-            } else {
-                // Falls kein Textknoten vorhanden ist, füge einen neuen ein
-                el.insertBefore(document.createTextNode(value), el.firstChild);
-            }
+            el.textContent = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
+        });
+        document.querySelectorAll("[data-tool-lang]").forEach(el => {
+            const key = el.getAttribute("data-tool-lang");
+            el.title = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
         });
     }
 
@@ -1775,18 +1789,43 @@
     const translations = {
         en: {
             loading: "Loading data...",
-            user: "User: ",
-            map: "Map: ",
-            tower: "Tower: ",
-            level: "Level: ",
+            name_: "Name",
+            user_: "User: ",
+            map_: "Map: ",
+            tower_: "Tower: ",
+            level_: "Level: ",
+            typ_: "Typ: ",
+            size_: "Size: ",
+            difficulty_: "Difficulty: ",
+            player_: "Player: ",
+            credits_: "Credits: ",
             upgrade: "Upgrade",
-            towerStats: "Tower Stats",
-            towerStatistics: "Tower Statistics",
-            powerUps: "PowerUps",
+            tower_stats: "Attributes",
+            tower_statistics: "Statistics",
+            power_ups: "Power-Ups",
+            full: "Full",
+            wave: "Wave",
             start: "Start",
             stop: "Stop",
-            credits: "Credits",
-            profiles: "Profiles",
+            profiles_: "Profiles: ",
+            start_stop: "Start / Stop",
+            select_random: "Select Random",
+            select_profile: "Select Profile",
+            create_profile: "Create Profile",
+            delete_profile: "Delete Profile",
+            load_profile: "Load Profile",
+            save_profile: "Save Profile",
+            change_type: "Change Type",
+            auto_refresh: "Auto Refresh",
+            refresh_statistics: "Refresh",
+
+            delete_profile_confirm: "Are you sure you want to delete this profile?",
+            delete_profile_success: "Profile deleted successfully.",
+            delete_profile_error: "Failed to delete profile.",
+            save_profile_success: "Profile saved successfully.",
+            save_profile_error: "Failed to save profile.",
+            profile_name: "Profile Name",
+            profile_name_placeholder: "Enter a name for this profile",
             newProfilePrompt: "New profile name:",
             profileExists: "Profile name already exist.",
             profileCreated: "Profile created.",
@@ -1800,18 +1839,45 @@
         },
         de: {
             loading: "Daten werden geladen...",
-            user: "Benutzer: ",
-            map: "Karte: ",
-            tower: "Turm: ",
-            level: "Level: ",
+            name_: "Name",
+            user_: "Benutzer: ",
+            map_: "Karte: ",
+            tower_: "Turm: ",
+            level_: "Stufe: ",
+            typ_: "Art: ",
+            size_: "Größe: ",
+            difficulty_: "Schwierigkeit: ",
+            player_: "Spieler: ",
+            credits_: "Kredits: ",
+            map: "Karte",
             upgrade: "Verbesserung",
-            towerStats: "Turmwerte",
-            towerStatistics: "Turmstatistiken",
-            powerUps: "PowerUps",
+            tower_stats: "Eigenschaften",
+            tower_statistics: "Statistiken",
+            power_ups: "Verstärkungen",
+            full: "Alles",
+            wave: "Welle",
             start: "Start",
-            stop: "Stopp",
-            credits: "Credits",
-            profiles: "Profile",
+            stop: "Stop",
+            profiles_: "Profile: ",
+            start_stop: "Start / Stop",
+            select_random: "Zufällige Auswahl",
+            select_profile: "Profil auswählen",
+            create_profile: "Profil erstellen",
+            delete_profile: "Profil löschen",
+            load_profile: "Profil laden",
+            save_profile: "Profil speichern",
+            change_type: "Typ ändern",
+            auto_refresh: "Automatisch aktualisieren",
+            refresh: "Aktualisieren",
+
+
+            delete_profile_confirm: "Are you sure you want to delete this profile?",
+            delete_profile_success: "Profile deleted successfully.",
+            delete_profile_error: "Failed to delete profile.",
+            save_profile_success: "Profile saved successfully.",
+            save_profile_error: "Failed to save profile.",
+            profile_name: "Profile Name",
+            profile_name_placeholder: "Enter a name for this profile",
             newProfilePrompt: "Name für neues Profil:",
             profileExists: "Profilname existiert bereits.",
             profileCreated: "Profil erstellt.",
