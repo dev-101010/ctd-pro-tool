@@ -1714,7 +1714,7 @@
     });
 
 
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("load", () => {
         try {
             if (window.opener) {
                 window.opener.postMessage("REQUEST_USER_DATA", location.origin);
@@ -1742,11 +1742,6 @@
             default:
                 console.error("Unknown domain:", domain);
                 return;
-        }
-
-        if (!serverURI) {
-            console.error("Unknown Domain.");
-            return;
         }
 
         loadProfiles();
