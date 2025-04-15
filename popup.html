@@ -550,7 +550,7 @@
     let statsSelectFilled = false;
     let statisticsMode = "full";
 
-    const language = "de";
+    let language = "de";
     let towerUiTemplates = null;
     let powerUpUiTemplates = null;
     let towerTargetModes = null;
@@ -1694,6 +1694,7 @@
         try {
             authToken = window.opener?.sessionStorage.getItem("authToken");
             userToken = window.opener?.sessionStorage.getItem("userToken");
+            language = window.opener?.sessionStorage.getItem("userLanguage");
             domain = window.opener?.location.hostname;
         } catch (e) {
             console.error("Zugriff auf Daten fehlgeschlagen!");
