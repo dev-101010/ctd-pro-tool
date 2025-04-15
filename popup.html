@@ -824,6 +824,7 @@
     function fillSkillContainer() {
         skillBuilded = true;
         const towerData = towerMainValuesSet[ownUserId];
+        console.log(towerData);
         const towerUpgrades = towerUpgradeDataSet[ownUserId];
         if(towerUpgrades) {
             towerUpgrades.forEach((data, idx) => {
