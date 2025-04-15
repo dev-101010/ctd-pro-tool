@@ -1728,17 +1728,20 @@
 
     function start(authToken, userToken) {
 
-        let domain = location.hostname;
+        let domain = location.origin;
 
         let serverURI = "";
 
         switch (domain) {
-            case "www.c-td.de":
+            case "https://www.c-td.de":
                 serverURI = "wss://ctd.drochmann.de:8125";
                 break;
-            case "ctddev.shimly-dev.de":
+            case "https://ctddev.shimly-dev.de":
                 serverURI = "wss://ctd.drochmann.de:8225";
                 break;
+            default:
+                console.error("Unknown domain:", domain);
+                return;
         }
 
         if (!serverURI) {
