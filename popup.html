@@ -387,7 +387,7 @@
 <body>
 
 <div id="loadingMessage">
-    <p>Lade Daten, bitte warten...</p>
+    <p>Loading data...</p>
 </div>
 
 <div id="mainContent" style="display: none;">
@@ -438,31 +438,31 @@
                 <button id="toggleStartStop" title="Start/Stop" onclick="toggleButtonState()"
                         style="background-color: green;">Start
                 </button>
-                <button id="randomButton" class="profileButton" title="Zufällig füllen" onclick="randomizeSkillData()">
+                <button id="randomButton" class="profileButton" title="Select random" onclick="randomizeSkillData()">
                     🎲
                 </button>
             </div>
             <div>Credits: <span id="openCredits">0</span>/<span id="neededCredits">0</span></div>
             <div class="controls">
                 <label for="profileSelect">Profiles:</label>
-                <select title="Profil auswählen" id="profileSelect">
-                    <!-- Dynamisch befüllt -->
+                <select title="Select profile" id="profileSelect">
+                    <!-- Filled dynamic -->
                 </select>
-                <button id="newProfileButton" title="Profil erstellen" class="profileButton" onclick="newProfile()">➕
+                <button id="newProfileButton" title="Create new profile" class="profileButton" onclick="newProfile()">➕
                 </button>
-                <button id="deleteProfileButton" title="Profil löschen" class="profileButton" onclick="deleteProfile()">
+                <button id="deleteProfileButton" title="Delete profile" class="profileButton" onclick="deleteProfile()">
                     🗑️
                 </button>
-                <button id="loadProfileButton" title="Profil laden" class="profileButton" onclick="loadProfile()">📂
+                <button id="loadProfileButton" title="Load profile" class="profileButton" onclick="loadProfile()">📂
                 </button>
-                <button id="saveProfileButton" title="Profil speichern" class="profileButton" onclick="saveProfile()">
+                <button id="saveProfileButton" title="Save profile" class="profileButton" onclick="saveProfile()">
                     💾
                 </button>
             </div>
         </div>
 
         <div class="skill-container" id="skillContainer">
-            <!-- Dynamisch generierte Skills -->
+            <!-- Dynamic Generated Skills -->
         </div>
     </div>
 
@@ -472,7 +472,7 @@
                 <label for="statsUserSelect">User:</label>
                 <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()"
                         onchange="setStatsUid()">
-                    <!-- Dynamisch befüllt -->
+                    <!-- Dynamic filled -->
                 </select>
             </div>
         </div>
@@ -485,9 +485,9 @@
                 <label for="statisticsUserSelect">User:</label>
                 <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()"
                         onchange="setSelectedStatisticsUid()">
-                    <!-- Dynamisch befüllt -->
+                    <!-- Dynamic filled -->
                 </select>
-                <button id="statModeToggle" title="Statistik Typ" class="profileButton" style="margin-left: 16px;"
+                <button id="statModeToggle" title="Change type" class="profileButton" style="margin-left: 16px;"
                         onclick="toggleStatisticMode()">Full
                 </button>
             </div>
@@ -507,7 +507,7 @@
 
     <div class="tab-content" id="powerUpsTab">
         <div id="powerUpsContainer">
-            <!-- Tabelle wird dynamisch befüllt -->
+            <!-- dynamic filled -->
         </div>
     </div>
 
@@ -854,10 +854,10 @@
         label.textContent = `${name} ${skill.count}/${limit}`;
         row.appendChild(label);
 
-        // Buttons erzeugen
+        // Create Buttons
         const fillBtn = document.createElement('button');
         fillBtn.textContent = "⬆";
-        fillBtn.title = "Skill füllen";
+        fillBtn.title = "Full skill";
         fillBtn.style.marginLeft = "6px";
         fillBtn.onclick = () => {
             for (let i = 0; i < MAX_SKILL_BOXES; i++) {
@@ -868,7 +868,7 @@
 
         const clearBtn = document.createElement('button');
         clearBtn.textContent = "⬇";
-        clearBtn.title = "Skill leeren";
+        clearBtn.title = "Empty skill";
         clearBtn.style.marginLeft = "6px";
         clearBtn.onclick = () => {
             for (let i = 0; i < MAX_SKILL_BOXES; i++) {
@@ -882,7 +882,7 @@
         fillBtn.className = "miniSkillButton";
         clearBtn.className = "miniSkillButton";
 
-        // Buttons an Label anhängen
+        // Add Buttons
         label.appendChild(fillBtn);
         label.appendChild(clearBtn);
 
@@ -893,7 +893,7 @@
             const box = document.createElement('div');
             box.className = 'box';
             box.setAttribute('draggable', 'false');
-            box.dataset.index = i;
+            box.dataset.index = i.toString();
             box.dataset.skill = skillIndex;
 
             box.addEventListener('mousedown', () => {
@@ -955,7 +955,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil aus oder erstelle ein neues.", "info");
+            showToast("Please select profile or create new one.", "info");
             return;
         }
 
@@ -963,7 +963,7 @@
         profiles[selectedName] = skillData;
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
-        showToast("Profil gespeichert.", "success");
+        showToast("Profile saved.", "success");
     }
 
     function loadProfile() {
@@ -972,7 +972,7 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil aus.", "info");
+            showToast("Please select a profile.", "info");
             return;
         }
 
@@ -985,21 +985,21 @@
                 skillData[i] = val || null;
             });
             syncVisualWithSkillData(skillData);
-            showToast("Profil geladen.", "success");
+            showToast("Profile loaded.", "success");
         } else {
-            showToast("Fehler beim Laden des Profils.", "error");
+            showToast("Failed to load profile.", "error");
         }
     }
 
     function newProfile() {
-        const name = prompt("Neuer Profilname:");
+        const name = prompt("New profile name:");
         if (!name) return;
 
         const profileSelect = document.getElementById("profileSelect");
         const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
 
         if (profiles[name]) {
-            showToast("Profilname existiert bereits.", "error");
+            showToast("Profile name already exist.", "error");
             return;
         }
 
@@ -1012,7 +1012,7 @@
         profileSelect.appendChild(option);
         profileSelect.value = name;
 
-        showToast("Profil erstellt.", "success");
+        showToast("Profile created.", "success");
     }
 
     function deleteProfile() {
@@ -1020,11 +1020,11 @@
         const selectedName = profileSelect.value;
 
         if (!selectedName) {
-            showToast("Bitte wähle ein Profil zum Löschen aus.", "info");
+            showToast("Pleas select profile to delete.", "info");
             return;
         }
 
-        if (!confirm(`Möchtest du das Profil "${selectedName}" wirklich löschen?`)) {
+        if (!confirm(`You really want to delete "${selectedName}"?`)) {
             return;
         }
 
@@ -1032,8 +1032,8 @@
         delete profiles[selectedName];
         localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
 
-        loadProfiles(); // Aktualisiere das Select-Feld
-        showToast("Profil gelöscht.", "success");
+        loadProfiles(); // Refresh select field
+        showToast("Profile deleted.", "success");
     }
 
     function updateMapInfo() {
@@ -1249,33 +1249,33 @@
 
     function randomizeSkillData() {
         if (!hasTower || !Array.isArray(towerUpgradeDataSet[ownUserId])) {
-            showToast("Keine Turm-Daten verfügbar.", "error");
+            showToast("No tower data available.", "error");
             return;
         }
 
-        // Nur upgradebare Skills auswählen
+        // Only upgradeable skills
         const validSkills = towerUpgradeDataSet[ownUserId]
             .filter(s => s.upgradeable && s.name)
             .map(s => s.name);
 
         if (validSkills.length === 0) {
-            showToast("Keine gültigen Skills verfügbar.", "error");
+            showToast("No valid skills available.", "error");
             return;
         }
 
-        // Jede Spalte mit zufälligem Skill befüllen
+        // Random skills over all rows
         for (let i = 0; i < MAX_SKILL_BOXES; i++) {
             const randomIndex = Math.floor(Math.random() * validSkills.length);
             skillData[i] = validSkills[randomIndex];
         }
 
         syncVisualWithSkillData(skillData);
-        showToast("Zufällige Skills generiert.", "success");
+        showToast("Random skill selection executed.", "success");
     }
 
     function triggerStatisticsRefresh() {
         if (!statisticsUid) {
-            showToast("Kein Benutzer ausgewählt.", "info");
+            showToast("No user selected.", "info");
             return;
         }
         loadStatistics(statisticsUid);
@@ -1368,7 +1368,7 @@
         autoRefreshEnabled = !autoRefreshEnabled;
 
         if (autoRefreshEnabled) {
-            btn.textContent = ""; // Symbol ausblenden
+            btn.textContent = ""; // Hide Symbol
             spinner.style.display = "block";
 
             autoRefreshInterval = setInterval(() => {
@@ -1429,7 +1429,7 @@
 
         const others = Object.keys(towerMainValuesSet)
             .filter(uid => parseInt(uid) !== ownUserId)
-            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unbekannt"}))
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unknown"}))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         others.forEach(({uid, name}) => {
@@ -1461,7 +1461,7 @@
 
         const others = Object.keys(towerMainValuesSet)
             .filter(uid => parseInt(uid) !== ownUserId)
-            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unbekannt"}))
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unknown"}))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         others.forEach(({uid, name}) => {
@@ -1485,7 +1485,7 @@
         if (select.options.length === 0 && ownUserData?.user?.displayname) {
             const opt = document.createElement("option");
             opt.value = ownUserId;
-            opt.textContent = ownUserData.user.displayname + " (du)";
+            opt.textContent = `» ${ownUserData.user.displayname} «`;
             select.appendChild(opt);
             select.value = ownUserId;
         }
@@ -1500,7 +1500,7 @@
         if (select.options.length === 0 && ownUserData?.user?.displayname) {
             const opt = document.createElement("option");
             opt.value = ownUserId;
-            opt.textContent = ownUserData.user.displayname + " (du)";
+            opt.textContent = `» ${ownUserData.user.displayname} «`;
             select.appendChild(opt);
             select.value = ownUserId;
         }
@@ -1534,19 +1534,19 @@
 
         const tbody = document.createElement('tbody');
 
-        mapData.mapPowerUps.forEach(powerup => {
+        mapData.mapPowerUps.forEach(powerUp => {
             const tr = document.createElement('tr');
 
-            tr.dataset.group = powerup.group;
-            tr.dataset.name = powerup.name;
+            tr.dataset.group = powerUp.group;
+            tr.dataset.name = powerUp.name;
 
-            const readName = powerUpUiTemplates?.find(u => u.group === powerup.group && u.name === powerup.name).readName || powerup.group + " - " + powerup.name;
+            const readName = powerUpUiTemplates?.find(u => u.group === powerUp.group && u.name === powerUp.name).readName || powerUp.group + " - " + powerUp.name;
 
             const values = [
                 readName,
-                powerup.used,
-                (powerup.limit > 0 ? powerup.limit : '-'),
-                (powerup.userLimit > 0 ? powerup.userLimit : '-')
+                powerUp.used,
+                (powerUp.limit > 0 ? powerUp.limit : '-'),
+                (powerUp.userLimit > 0 ? powerUp.userLimit : '-')
             ];
 
             values.forEach(val => {
@@ -1564,15 +1564,15 @@
             timeoutCell.style.padding = '4px';
             timeoutCell.style.textAlign = 'center';
             timeoutCell.style.color = '#ccc';
-            timeoutCell.dataset.timeout = powerup.timeout || '';
-            timeoutCell.dataset.group = powerup.group;
-            timeoutCell.dataset.name = powerup.name;
+            timeoutCell.dataset.timeout = powerUp.timeout || '';
+            timeoutCell.dataset.group = powerUp.group;
+            timeoutCell.dataset.name = powerUp.name;
 
-            const diff = powerup.timeout ? Math.floor((powerup.timeout - Date.now()) / 1000) : null;
+            const diff = powerUp.timeout ? Math.floor((powerUp.timeout - Date.now()) / 1000) : null;
             timeoutCell.textContent = (diff && diff > 0) ? diff + 's' : '-';
             tr.appendChild(timeoutCell);
 
-            const owned = ownUserData?.powerUps?.find(p => p.group === powerup.group && p.name === powerup.name)?.value || 0;
+            const owned = ownUserData?.powerUps?.find(p => p.group === powerUp.group && p.name === powerUp.name)?.value || 0;
             const tdOwned = document.createElement('td');
             tdOwned.textContent = owned;
             tdOwned.style.border = '1px solid #444';
@@ -1589,7 +1589,7 @@
             const btn = document.createElement('button');
             btn.textContent = 'Use';
             btn.onclick = () => {
-                socket.emit('usePowerUp', { group: powerup.group, name: powerup.name });
+                socket.emit('usePowerUp', { group: powerUp.group, name: powerUp.name });
             };
 
             tdAction.appendChild(btn);
