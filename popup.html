@@ -1423,7 +1423,7 @@
         if (ownUser?.displayname) {
             const option = document.createElement("option");
             option.value = ownUserId;
-            option.textContent = ownUser.displayname + " «";
+            option.textContent = "» " + ownUser.displayname + " «";
             select.appendChild(option);
         }
 
