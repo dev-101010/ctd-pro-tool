@@ -387,7 +387,7 @@
 <body>
 
 <div id="loadingMessage">
-    <p>Loading data...</p>
+    <p data-lang="loading">Loading data...</p>
 </div>
 
 <div id="mainContent" style="display: none;">
@@ -1715,6 +1715,7 @@
 
 
     window.addEventListener("load", () => {
+
         try {
             if (window.opener) {
                 window.opener.postMessage("REQUEST_USER_DATA", location.origin);
@@ -1727,6 +1728,17 @@
     });
 
     function start(authToken, userToken) {
+
+        function applyTranslations() {
+            const dict = translations[language] || translations["en"];
+            document.querySelectorAll("[data-lang]").forEach(el => {
+                const key = el.getAttribute("data-lang");
+                const value = dict[key];
+                el.textContent = typeof value === "function" ? value() : (value || key);
+            });
+        }
+
+        applyTranslations();
 
         let domain = location.origin;
 
@@ -1755,7 +1767,7 @@
     const translations = {
         en: {
             loading: "Loading data...",
-            map: "Map",
+            map: "Map:",
             upgrade: "Upgrade",
             towerStats: "Tower Stats",
             towerStatistics: "Tower Statistics",
@@ -1774,11 +1786,10 @@
             noTowerData: "No tower data available.",
             noValidSkills: "No valid skills available.",
             randomSkillDone: "Random skill selection executed.",
-            // Weitere Einträge...
         },
         de: {
             loading: "Daten werden geladen...",
-            map: "Karte",
+            map: "Karte:",
             upgrade: "Verbesserung",
             towerStats: "Turmwerte",
             towerStatistics: "Turmstatistiken",
@@ -1797,7 +1808,6 @@
             noTowerData: "Keine Turmdaten verfügbar.",
             noValidSkills: "Keine gültigen Skills verfügbar.",
             randomSkillDone: "Zufällige Skill-Auswahl durchgeführt.",
-            // Weitere Einträge...
         }
     };
 </script>
