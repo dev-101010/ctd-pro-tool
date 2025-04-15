@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         C-TD Pro Tool
 // @namespace    https://dev-101010.de/ctdt/script.user.js
-// @version      0.12
+// @version      0.13
 // @description  C-TD Pro Tool
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield
@@ -34,9 +34,20 @@
             const blob = new Blob([html], { type: "text/html" });
             const blobUrl = URL.createObjectURL(blob);
 
-            sessionStorage.setItem("userToken", userToken);
-            sessionStorage.setItem("authToken", authToken);
-            sessionStorage.setItem("userLanguage", userLanguage);
+            window.addEventListener("message", (event) => {
+                if (event.data === "REQUEST_USER_DATA") {
+                    try {
+                        event.source?.postMessage({
+                            userLanguage,
+                            authToken,
+                            userToken
+                        }, "*");
+                    } catch (e) {
+                        console.error("Failed to send user data to popup:", e);
+                    }
+                }
+            });
+
             window.open(blobUrl, "_blank", "width=800,height=400");
 
         });
