@@ -1728,11 +1728,9 @@
 
     function start(authToken, userToken) {
 
-        let domain = location.origin;
-
         let serverURI = "";
 
-        switch (domain) {
+        switch (location.origin) {
             case "https://www.c-td.de":
                 serverURI = "wss://ctd.drochmann.de:8125";
                 break;
