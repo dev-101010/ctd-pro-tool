@@ -387,17 +387,17 @@
 <body>
 
 <div id="loadingMessage">
-    <p data-lang="loading">Loading data...</p>
+    <p data-lang="loading"></p>
 </div>
 
 <div id="mainContent" style="display: none;">
 
     <div id="mapInfoBar" class="map-info-bar">
         <span id="ping">⬤</span>
-        <span class="info-block">User: <span id="userName">–</span></span>
-        <span class="info-block">Map: <span id="mapName">–</span></span>
-        <span class="info-block">Tower: <span id="towerName">–</span></span>
-        <span class="info-block">Level: <span id="towerLevel">–</span></span>
+        <span class="info-block" data-lang="user"><span id="userName">–</span></span>
+        <span class="info-block" data-lang="map"><span id="mapName">–</span></span>
+        <span class="info-block" data-lang="tower"><span id="towerName">–</span></span>
+        <span class="info-block" data-lang="level"><span id="towerLevel">–</span></span>
     </div>
 
     <div class="tab-menu">
@@ -1727,16 +1727,16 @@
         }
     });
 
-    function start(authToken, userToken) {
+    function applyTranslations() {
+        const dict = translations[language] || translations["en"];
+        document.querySelectorAll("[data-lang]").forEach(el => {
+            const key = el.getAttribute("data-lang");
+            const value = dict[key];
+            el.textContent = typeof value === "function" ? value() : (value || key);
+        });
+    }
 
-        function applyTranslations() {
-            const dict = translations[language] || translations["en"];
-            document.querySelectorAll("[data-lang]").forEach(el => {
-                const key = el.getAttribute("data-lang");
-                const value = dict[key];
-                el.textContent = typeof value === "function" ? value() : (value || key);
-            });
-        }
+    function start(authToken, userToken) {
 
         applyTranslations();
 
@@ -1767,7 +1767,10 @@
     const translations = {
         en: {
             loading: "Loading data...",
-            map: "Map:",
+            user: "User: ",
+            map: "Map: ",
+            tower: "Tower: ",
+            level: "Level: ",
             upgrade: "Upgrade",
             towerStats: "Tower Stats",
             towerStatistics: "Tower Statistics",
@@ -1789,7 +1792,10 @@
         },
         de: {
             loading: "Daten werden geladen...",
-            map: "Karte:",
+            user: "Benutzer: ",
+            map: "Karte: ",
+            tower: "Turm: ",
+            level: "Level: ",
             upgrade: "Verbesserung",
             towerStats: "Turmwerte",
             towerStatistics: "Turmstatistiken",
