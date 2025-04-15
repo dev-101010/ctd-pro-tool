@@ -563,6 +563,12 @@
     const openCreditsEl = document.getElementById('openCredits');
     const neededCreditsEl = document.getElementById('neededCredits');
 
+    function lang(key, ...args) {
+        const dict = translations[language] || translations["en"];
+        const value = dict[key];
+        return typeof value === "function" ? value(...args) : value || key;
+    }
+
     function showTab(index) {
         const buttons = document.querySelectorAll('.tab-button');
         const contents = document.querySelectorAll('.tab-content');
@@ -1685,31 +1691,37 @@
         }
     });
 
-    window.addEventListener("load", () => {
+    window.addEventListener("message", (event) => {
+        const data = event.data || {};
 
-        let authToken = "";
-        let userToken = "";
-        let domain = "";
+        // Assign values if present
+        if (data.userLanguage && data.authToken && data.userToken) {
+            language = data.userLanguage || language;
+            const authToken = data.authToken || authToken;
+            const userToken = data.userToken || userToken;
 
+            start(authToken,userToken);
+        } else {
+            console.warn("Received message does not contain expected user data.");
+        }
+    });
+
+
+    window.addEventListener("DOMContentLoaded", () => {
         try {
-            authToken = window.opener?.sessionStorage.getItem("authToken") || "";
-            userToken = window.opener?.sessionStorage.getItem("userToken") || "";
-            domain = window.opener?.location.hostname;
+            if (window.opener) {
+                window.opener.postMessage("REQUEST_USER_DATA", "*");
+            } else {
+                console.warn("No opener window available.");
+            }
         } catch (e) {
-            console.error("Data access failed.");
-            return;
+            console.error("Failed to request user data from opener:", e);
         }
+    });
 
-        try{
-            language = window.opener?.sessionStorage.getItem("userLanguage") || "en";
-        } catch (e) {
-            console.error("Language access failed. Please update Script.");
-        }
+    function start(authToken, userToken) {
 
-        if (!userToken || !authToken) {
-            console.error("No userToken found.");
-            return;
-        }
+        let domain = location.hostname;
 
         let serverURI = "";
 
@@ -1733,7 +1745,56 @@
 
         setInterval(updatePowerUpTimeout, 1000)
 
-    });
+    }
+
+    const translations = {
+        en: {
+            loading: "Loading data...",
+            map: "Map",
+            upgrade: "Upgrade",
+            towerStats: "Tower Stats",
+            towerStatistics: "Tower Statistics",
+            powerUps: "PowerUps",
+            start: "Start",
+            stop: "Stop",
+            credits: "Credits",
+            profiles: "Profiles",
+            newProfilePrompt: "New profile name:",
+            profileExists: "Profile name already exist.",
+            profileCreated: "Profile created.",
+            pleaseSelectProfile: "Please select a profile.",
+            profileSaved: "Profile saved.",
+            profileDeleted: "Profile deleted.",
+            confirmDelete: name => `You really want to delete "${name}"?`,
+            noTowerData: "No tower data available.",
+            noValidSkills: "No valid skills available.",
+            randomSkillDone: "Random skill selection executed.",
+            // Weitere Einträge...
+        },
+        de: {
+            loading: "Daten werden geladen...",
+            map: "Karte",
+            upgrade: "Verbesserung",
+            towerStats: "Turmwerte",
+            towerStatistics: "Turmstatistiken",
+            powerUps: "PowerUps",
+            start: "Start",
+            stop: "Stopp",
+            credits: "Credits",
+            profiles: "Profile",
+            newProfilePrompt: "Name für neues Profil:",
+            profileExists: "Profilname existiert bereits.",
+            profileCreated: "Profil erstellt.",
+            pleaseSelectProfile: "Bitte ein Profil auswählen.",
+            profileSaved: "Profil gespeichert.",
+            profileDeleted: "Profil gelöscht.",
+            confirmDelete: name => `Willst du "${name}" wirklich löschen?`,
+            noTowerData: "Keine Turmdaten verfügbar.",
+            noValidSkills: "Keine gültigen Skills verfügbar.",
+            randomSkillDone: "Zufällige Skill-Auswahl durchgeführt.",
+            // Weitere Einträge...
+        }
+    };
 </script>
 </body>
 </html>
