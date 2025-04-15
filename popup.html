@@ -823,14 +823,14 @@
 
     function fillSkillContainer() {
         skillBuilded = true;
-        const towerData = towerMainValuesSet[ownUserId];
-        console.log(towerData);
+        const towerId = towerMainValuesSet[ownUserId]?.tower;
+        console.log(towerId);
         const towerUpgrades = towerUpgradeDataSet[ownUserId];
         if(towerUpgrades) {
             towerUpgrades.forEach((data, idx) => {
                 const name = data.name;
                 const upgradeable = data.upgradeable;
-                if (towerID && name && upgradeable) createSkillRow(towerData.tower, data, idx);
+                if (name && upgradeable) createSkillRow(towerId, data, idx);
             });
         }
     }
