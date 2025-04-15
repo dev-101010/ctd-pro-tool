@@ -824,7 +824,6 @@
     function fillSkillContainer() {
         skillBuilded = true;
         const towerId = towerMainValuesSet[ownUserId]?.tower;
-        console.log(towerId);
         const towerUpgrades = towerUpgradeDataSet[ownUserId];
         if(towerUpgrades) {
             towerUpgrades.forEach((data, idx) => {
@@ -847,7 +846,7 @@
 
         const label = document.createElement('div');
         label.className = 'skill-name';
-        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID);
+        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID)?.upgrades;
         const name = towerUpgradeUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
         const limit = skill.limit ? skill.limit : "∞";
         label.textContent = `${name} ${skill.count}/${limit}`;
@@ -1039,10 +1038,12 @@
         const userName = ownUserData?.user?.displayname;
         const mapName = mapData?.map?.name;
         const towerName = towerMainValuesSet[ownUserId]?.name;
+        const towerID = towerMainValuesSet[ownUserId]?.tower;
+        const readName = towerUiTemplates?.find(x => x.tower === towerID)?.readName || towerName;
         const towerLevel = towerMainValuesSet[ownUserId]?.level;
         document.getElementById("userName").textContent = userName ?? "–";
         document.getElementById("mapName").textContent = mapName ?? "–";
-        document.getElementById("towerName").textContent = towerName ?? "–";
+        document.getElementById("towerName").textContent = readName ?? "–";
         document.getElementById("towerLevel").textContent = (towerLevel ?? "–");
         updateMapTabInfo();
     }
