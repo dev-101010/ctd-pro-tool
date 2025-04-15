@@ -1162,7 +1162,7 @@
         table.style.width = "100%";
         table.style.fontSize = "14px";
 
-        const dynamicKeys = Object.keys(stats[0]).filter(k => k !== "name");
+        const dynamicKeys = Object.keys(stats[0]).filter(k => k !== "name" && !k.includes("res"));
         const headers = ["name", "total", ...dynamicKeys];
 
         const thead = document.createElement("thead");
