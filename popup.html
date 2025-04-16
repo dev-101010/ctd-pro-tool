@@ -1638,15 +1638,15 @@
 
         const cells = row.children;
 
+        if(cells[1])
+            cells[1].textContent = updatedData.used;
         if(cells[2])
-            cells[2].textContent = updatedData.used;
+            cells[2].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
         if(cells[3])
-            cells[3].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
-        if(cells[4])
-            cells[4].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
+            cells[3].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
 
-        if(cells[5]) {
-            const timeoutCell = cells[5];
+        if(cells[4]) {
+            const timeoutCell = cells[4];
             if (typeof updatedData.timeout === 'number') {
                 timeoutCell.dataset.timeout = updatedData.timeout;
                 const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
@@ -1657,8 +1657,8 @@
             }
         }
 
-        if(cells[6])
-            cells[6].textContent = ownUserData?.powerUps?.find(p =>
+        if(cells[5])
+            cells[5].textContent = ownUserData?.powerUps?.find(p =>
                 p.group === group && p.name === name)?.value || 0;
     }
     
