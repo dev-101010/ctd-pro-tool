@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         C-TD Pro Tool
-// @namespace    https://dev-101010.de/ctdt/script.user.js
+// @namespace    https://dev-101010.de/ctdpt/script.user.js
 // @version      0.16
 // @description  C-TD Pro Tool
 // @author       dev-101010
@@ -23,7 +23,7 @@
         button.style.margin = "5px";
         button.addEventListener("click", async () => {
 
-            const popupUrl = "https://dev-101010.de/ctdt/popup.html";
+            const popupUrl = "https://dev-101010.de/ctdpt/popup.html";
 
             const bust = Date.now();
             const response = await fetch(`${popupUrl}?v=${bust}`, {
