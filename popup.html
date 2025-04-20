@@ -1521,7 +1521,7 @@
         const others = Object.keys(towerSkillDataSet[statsUid])
             .map(id => ({
                 id,
-                name: `Skill ${Number.parseInt(id) + 1} (${towerSkillDataSet[statsUid][id].damageType})` || "Unknown"
+                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${towerSkillDataSet[statsUid][id].damageType})` || "Unknown"
             }));
 
         others.forEach(({id, name}) => {
@@ -1839,6 +1839,7 @@
             tower_stats: "Attributes",
             tower_statistics: "Statistics",
             power_ups: "Power-Ups",
+            skill:"Skill",
             full: "Map",
             wave: "Wave",
             start: "Start",
@@ -1905,6 +1906,7 @@
             tower_stats: "Eigenschaften",
             tower_statistics: "Statistiken",
             power_ups: "Verstärkungen",
+            skill:"Fertigkeit",
             full: "Karte",
             wave: "Welle",
             start: "Start",
