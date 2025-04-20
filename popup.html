@@ -1521,7 +1521,7 @@
         const others = Object.keys(towerSkillDataSet[statsUid])
             .map(id => ({
                 id,
-                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${towerSkillDataSet[statsUid][id].damageType})` || "Unknown"
+                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${towerSkillDataSet[statsUid][id].damageType || lang("other")})` || "Unknown"
             }));
 
         others.forEach(({id, name}) => {
@@ -1844,6 +1844,7 @@
             wave: "Wave",
             start: "Start",
             stop: "Stop",
+            other: "other",
             profiles_: "Profiles: ",
             start_stop: "Start / Stop",
             select_random: "Select Random",
@@ -1911,6 +1912,7 @@
             wave: "Welle",
             start: "Start",
             stop: "Stop",
+            other: "anderer",
             profiles_: "Profile: ",
             start_stop: "Start / Stop",
             select_random: "Zufällige Auswahl",
