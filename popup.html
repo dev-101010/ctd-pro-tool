@@ -579,6 +579,7 @@
     let towerUiTemplates = null;
     let powerUpUiTemplates = null;
     let towerTargetModes = null;
+    let defaultLanguage = null;
 
     const skillData = [];
 
@@ -683,6 +684,7 @@
                 towerUiTemplates = res.towerUiTemplates;
                 powerUpUiTemplates = res.powerUpUiTemplates;
                 towerTargetModes = res.towerTargetModes;
+                defaultLanguage = res.language;
 
                 renderPowerUpsTable();
             });
@@ -1518,10 +1520,13 @@
         const currentValue = select.value || 0;
         select.innerHTML = "";
 
-        const others = Object.keys(towerSkillDataSet[statsUid])
+        const towerSkillData = towerSkillDataSet[statsUid];
+        if (!towerSkillData) return;
+
+        const others = Object.keys(towerSkillData)
             .map(id => ({
                 id,
-                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${towerSkillDataSet[statsUid][id].damageType || lang("other")})` || "Unknown"
+                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${getDamageTypeLang(towerSkillData[id].damageType)})`
             }));
 
         others.forEach(({id, name}) => {
@@ -1534,6 +1539,10 @@
         if ([...select.options].some(opt => opt.value === currentValue)) {
             select.value = currentValue || 0;
         }
+    }
+
+    function getDamageTypeLang(damageType) {
+        return defaultLanguage[damageType] || lang("other") || "Unknown";
     }
 
     function initStatisticsSelectDisplay() {
