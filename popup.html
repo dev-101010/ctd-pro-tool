@@ -1542,7 +1542,7 @@
     }
 
     function getDamageTypeLang(damageType) {
-        return defaultLanguage[damageType] || lang("other") || "Unknown";
+        return defaultLanguage[`damageType_${damageType}`] || lang("other") || "Unknown";
     }
 
     function initStatisticsSelectDisplay() {
