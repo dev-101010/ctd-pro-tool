@@ -114,6 +114,11 @@
         }
 
         /*noinspection CssUnusedSymbol*/
+        .skill-uses {
+            color: #ccc;
+        }
+
+        /*noinspection CssUnusedSymbol*/
         .skill-boxes {
             display: flex;
             flex-wrap: wrap;
@@ -776,7 +781,6 @@
         const multi = towerMainValuesSet[ownUserId]?.upgradeMulti ?? 1;
         neededCredits = cost * multi;
         neededCreditsEl.innerHTML = `${neededCredits}`;
-        upgradeTower();
     }
 
     function resetOwnTower() {
@@ -858,9 +862,15 @@
         label.className = 'skill-name';
         const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID)?.upgrades;
         const name = towerUpgradeUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
-        const limit = skill.limit ? skill.limit : "∞";
-        label.textContent = `${name} ${skill.count}/${limit}`;
+        label.textContent = `${name}`;
         row.appendChild(label);
+        
+        const uses = document.createElement('div');
+        uses.className = 'skill-uses';
+        const limit = skill.limit ? skill.limit : "∞";
+        uses.dataset.skill = skill.name;
+        uses.textContent = `${skill.count}/${limit}`;
+        row.appendChild(uses);
 
         // Create Buttons
         const fillBtn = document.createElement('button');
@@ -891,8 +901,8 @@
         clearBtn.className = "miniSkillButton";
 
         // Add Buttons
-        label.appendChild(fillBtn);
-        label.appendChild(clearBtn);
+        row.appendChild(fillBtn);
+        row.appendChild(clearBtn);
 
         const boxes = document.createElement('div');
         boxes.className = 'skill-boxes';
@@ -1122,6 +1132,17 @@
     }
 
     function syncVisualWithSkillData(skillArray) {
+
+        const allLabels = document.querySelectorAll('.skill-uses');
+        allLabels.forEach(label => {
+            const towerUpgrades = towerUpgradeDataSet[ownUserId];
+            if(towerUpgrades) {
+                const skill = towerUpgrades.find(skill => skill.name === label.dataset.skill)
+                const limit = skill.limit ? skill.limit : "∞";
+                label.textContent = `${skill.count}/${limit}`;
+            }
+        });
+
         const allBoxes = document.querySelectorAll('.box');
 
         allBoxes.forEach(box => {
@@ -1139,19 +1160,34 @@
         });
     }
 
-    function calculateStats(stat) {
+    function calculateStats(stat,additive) {
         let total = 0;
         let base = (stat.basic || 0) + (stat.upg || 0);
         total += base;
-        total += (base * stat.boost * 0.01) || 0;
-        total += (base * stat.skill * 0.01) || 0;
-        total += (base * stat.buff * 0.01) || 0;
-        total += (base * stat.item * 0.01) || 0;
-        total += (base * stat.team * 0.01) || 0;
-        total += (base * stat.res1 * 0.01) || 0;
-        total += (base * stat.res2 * 0.01) || 0;
-        total += (base * stat.res3 * 0.01) || 0;
+        if (additive) {
+            total += stat.boost || 0;
+            total += stat.skill || 0;
+            total += stat.buff || 0;
+            total += stat.item || 0;
+            total += stat.team || 0;
+            total += stat.res1 || 0;
+            total += stat.res2 || 0;
+            total += stat.res3 || 0;
+        } else {
+            total += (base * stat.boost * 0.01) || 0;
+            total += (base * stat.skill * 0.01) || 0;
+            total += (base * stat.buff * 0.01) || 0;
+            total += (base * stat.item * 0.01) || 0;
+            total += (base * stat.team * 0.01) || 0;
+            total += (base * stat.res1 * 0.01) || 0;
+            total += (base * stat.res2 * 0.01) || 0;
+            total += (base * stat.res3 * 0.01) || 0;
+        }
         return total;
+    }
+
+    function isAdditive(h) {
+        return h==="critChance" || h==="bleedChance" || h==="buffCritChance" || h==="burnChance" || h==="damagePenetration" || h==="poisonChance" || h==="slowChance" || h==="slowValue";
     }
 
     function renderStatsTable() {
@@ -1200,7 +1236,7 @@
 
                 switch (h) {
                     case "total":
-                        const total = calculateStats(entry);
+                        const total = calculateStats(entry,isAdditive(h));
                         td.textContent = formatValue(total);
                         td.style.fontWeight = "bold";
                         td.style.color = "limegreen";
@@ -1240,8 +1276,13 @@
 
                     default:
                         const percent = entry[h] ?? 0;
-                        const base = (entry.basic ?? 0) + (entry.upg ?? 0);
-                        const realValue = percent * base * 0.01;
+                        let realValue = 0;
+                        if(isAdditive(h)) {
+                            realValue = percent;
+                        } else {
+                            const base = (entry.basic ?? 0) + (entry.upg ?? 0);
+                            realValue = percent * base * 0.01;
+                        }
 
                         const wrapper = document.createElement("div");
                         wrapper.style.display = "flex";
