@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         C-TD Pro Tool
+// @name         C-TD Pro Tool (beta)
 // @namespace    https://dev-101010.de/ctdpt/script.user.js
 // @version      0.18
 // @description  C-TD Pro Tool (beta)
