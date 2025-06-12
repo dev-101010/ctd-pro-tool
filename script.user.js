@@ -2,7 +2,7 @@
 // @name         C-TD Pro Tool
 // @namespace    https://dev-101010.de/ctdpt/script.user.js
 // @version      0.18
-// @description  C-TD Pro Tool
+// @description  C-TD Pro Tool (beta)
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield
 // @match        https://www.c-td.de/member/battlefield
