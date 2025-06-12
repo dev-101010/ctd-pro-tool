@@ -36,7 +36,7 @@
         if (!battleButtonContainer) return;
 
         const button = document.createElement("button");
-        button.textContent = (userLanguage === "de" ? "Pro Tool öffnen" : "Open Pro Tool") + "(beta)";
+        button.textContent = (userLanguage === "de" ? "Pro Tool öffnen" : "Open Pro Tool") + " (beta)";
         button.classList.add("btn", "btn-success");
         button.style.margin = "5px";
         button.addEventListener("click", async () => {
