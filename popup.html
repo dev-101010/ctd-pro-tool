@@ -938,7 +938,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+                const name = towerUpgradeDataSet[ownUserId][row]?.bonus;
 
                 if (skillData[column] === name) {
                     dragMode = "remove";
@@ -956,7 +956,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+                const name = towerUpgradeDataSet[ownUserId][row]?.bonus;
 
                 if (dragMode === "set" && skillData[column] !== name) {
                     skillData[column] = name;
@@ -1281,8 +1281,8 @@
 
         // Only upgradeable skills
         const validSkills = towerUpgradeDataSet[ownUserId]
-            .filter(s => s.upgradeable && s.name)
-            .map(s => s.name);
+            .filter(s => s.upgradeable === 1 && s.bonus)
+            .map(s => s.bonus);
 
         if (validSkills.length === 0) {
             showToast(lang("no_valid_skill_msg"), "error");
