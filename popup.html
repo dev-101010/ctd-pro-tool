@@ -1159,7 +1159,7 @@
             const skillIdx = Number(box.dataset.skill);
             const expectedSkillName = skillArray[index];
 
-            const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.name;
+            const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.bonus;
 
             if (expectedSkillName && actualName === expectedSkillName) {
                 box.classList.add('active');
