@@ -1249,13 +1249,14 @@
                         valueDiv.textContent = entry[head];
                         valueDiv.style.color = "#ccc";
 
-                        /*const percentDiv = document.createElement("div");
-                        percentDiv.textContent = `(x%)`;
+                        const percentDiv = document.createElement("div");
+                        if(entry[head+"_pct"])
+                            percentDiv.textContent = `(${entry[head+"_pct"]}%)`;
                         percentDiv.style.fontSize = "11px";
-                        percentDiv.style.color = "#888";*/
+                        percentDiv.style.color = "#888";
 
                         wrapper.appendChild(valueDiv);
-                        //wrapper.appendChild(percentDiv);
+                        wrapper.appendChild(percentDiv);
                         td.appendChild(wrapper);
                         break;
                 }
