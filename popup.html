@@ -855,7 +855,7 @@
         const credits = mapCredits ?? "–";
 
         document.getElementById("mapInfoName").textContent = mapName;
-        document.getElementById("mapInfoType").textContent = mapType;
+        document.getElementById("mapInfoType").textContent = lang("map_"+mapType);
         document.getElementById("mapInfoSize").textContent = mapSize;
         document.getElementById("mapInfoDiff").textContent = mapDiff;
         document.getElementById("mapInfoPlayersCombined").textContent = `${activePlayerCount} / ${maxPlayers}`;
@@ -1423,14 +1423,14 @@
     }
 
     function updateStatsTower(uid) {
-        console.log("updateStatsTower", uid);
         const towerNameLabel = document.getElementById("statsTowerNameLabel");
         if(!towerNameLabel) return;
 
         const tower = towerMainValuesSet[uid];
         if(tower) {
+            const readName = towerUiTemplates?.find(x => x.tower === tower.tower)?.readName || tower.name;
             towerNameLabel.style.display = "block";
-            towerNameLabel.textContent = tower.name;
+            towerNameLabel.textContent = readName;
         } else {
             towerNameLabel.style.display = "none";
         }
@@ -1855,6 +1855,8 @@
             user_: "User: ",
             skill_: "Skill: ",
             map_: "Map: ",
+            map_green: "Green",
+            map_ice: "Ice",
             tower_: "Tower: ",
             level_: "Level: ",
             typ_: "Typ: ",
@@ -1930,6 +1932,8 @@
             player_: "Spieler: ",
             credits_: "Kredits: ",
             map: "Karte",
+            map_green: "Grün",
+            map_ice: "Eis",
             upgrade: "Verbesserung",
             tower_stats: "Eigenschaften",
             tower_statistics: "Statistiken",
