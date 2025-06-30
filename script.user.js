@@ -33,7 +33,7 @@
         });
 
         const battleButtonContainer = document.getElementById("battleButtonContainer");
-        if (!battleButtonContainer) return;
+        if (!battleButtonContainer) return; 
 
         const button = document.createElement("button");
         button.textContent = (userLanguage === "de" ? "Pro Tool öffnen" : "Open Pro Tool");
