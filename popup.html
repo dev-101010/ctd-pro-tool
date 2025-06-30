@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>C-TD Pro Tool</title>
+    <link rel="icon" type="image/png" href="https://www.google.com/s2/favicons?sz=64&domain=c-td.de">
     <script src="https://www.c-td.de/assets/custom/socket.io.js"></script>
     <style>
         body {
@@ -260,6 +261,15 @@
             background-color: #222;
         }
 
+        .tab-button:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        .tab-button:focus-visible {
+            outline: 1px dashed rgba(255, 255, 255, 0.3);
+            outline-offset: -1px;
+        }
+
         .autoRefreshWrapper {
             position: relative;
             width: 28px;
@@ -336,7 +346,7 @@
 
         /*noinspection CssUnusedSymbol*/
         .toast {
-            background-color: #222;
+            background-color: #221;
             color: #ccc;
             font-size: 14px;
             padding: 6px 12px;
@@ -438,7 +448,8 @@
                 <button id="toggleStartStop" data-tool-lang="start_stop" onclick="toggleButtonState()"
                         style="background-color: green;" data-lang="start">
                 </button>
-                <button id="randomButton" class="profileButton" data-tool-lang="select_random" onclick="randomizeSkillData()">
+                <button id="randomButton" class="profileButton" data-tool-lang="select_random"
+                        onclick="randomizeSkillData()">
                     🎲
                 </button>
             </div>
@@ -451,21 +462,25 @@
                 <select data-tool-lang="select_profile" id="profileSelect">
                     <!-- Filled dynamic -->
                 </select>
-                <button id="newProfileButton" data-tool-lang="create_profile" class="profileButton" onclick="newProfile()">➕
+                <button id="newProfileButton" data-tool-lang="create_profile" class="profileButton"
+                        onclick="newProfile()">➕
                 </button>
-                <button id="deleteProfileButton" data-tool-lang="delete_profile" class="profileButton" onclick="deleteProfile()">
+                <button id="deleteProfileButton" data-tool-lang="delete_profile" class="profileButton"
+                        onclick="deleteProfile()">
                     🗑️
                 </button>
-                <button id="loadProfileButton" data-tool-lang="load_profile" class="profileButton" onclick="loadProfile()">📂
+                <button id="loadProfileButton" data-tool-lang="load_profile" class="profileButton"
+                        onclick="loadProfile()">📂
                 </button>
-                <button id="saveProfileButton" data-tool-lang="save_profile" class="profileButton" onclick="saveProfile()">
+                <button id="saveProfileButton" data-tool-lang="save_profile" class="profileButton"
+                        onclick="saveProfile()">
                     💾
                 </button>
             </div>
         </div>
 
         <div class="skill-container" id="skillContainer">
-            <!-- Dynamic Generated Skills -->
+            <!-- Filled dynamic -->
         </div>
     </div>
 
@@ -473,9 +488,15 @@
         <div class="header-bar">
             <div class="controls">
                 <label for="statsUserSelect" data-lang="user_"></label>
-                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()"
+                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsUserSelectIfNeeded()"
                         onchange="setStatsUid()">
-                    <!-- Dynamic filled -->
+                    <!-- Filled dynamic -->
+                </select>
+                <label id="statsTowerNameLabel" style="display:none; border: 1px solid; border-radius: 8px; padding: 4px 8px;"></label>
+                <label style="padding-left: 10px;" for="statsSkillSelect" data-lang="skill_"></label>
+                <select id="statsSkillSelect" class="uidInput" onfocus="fillStatsSkillSelectIfNeeded()"
+                        onchange="setStatsSkillId()">
+                    <!-- Filled dynamic -->
                 </select>
             </div>
         </div>
@@ -488,9 +509,10 @@
                 <label for="statisticsUserSelect" data-lang="user_"></label>
                 <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()"
                         onchange="setSelectedStatisticsUid()">
-                    <!-- Dynamic filled -->
+                    <!-- Filled dynamic -->
                 </select>
-                <button id="statModeToggle" data-tool-lang="change_type" class="profileButton" style="margin-left: 16px;"
+                <button id="statModeToggle" data-tool-lang="change_type" class="profileButton"
+                        style="margin-left: 16px;"
                         onclick="toggleStatisticMode()" data-lang="full">
                 </button>
             </div>
@@ -509,7 +531,7 @@
 
     <div class="tab-content" id="powerUpsTab">
         <div id="powerUpsContainer">
-            <!-- dynamic filled -->
+            <!-- Filled dynamic -->
         </div>
     </div>
 
@@ -532,7 +554,7 @@
     let userDataSet = {};
 
     let towerMainValuesSet = {};
-    let towerStatsDataSet = {};
+    let towerSkillDataSet = {};
     let towerUpgradeDataSet = {};
 
     let mapCredits = 0;
@@ -546,16 +568,19 @@
 
     let statisticsUid = null;
     let statsUid = null;
+    let statsSkillId = null;
     let autoRefreshEnabled = false;
     let autoRefreshInterval = null;
     let statisticsSelectFilled = false;
-    let statsSelectFilled = false;
+    let statsUserSelectFilled = false;
+    let statsSkillSelectFilled = false;
     let statisticsMode = "full";
 
     let language = "en";
     let towerUiTemplates = null;
     let powerUpUiTemplates = null;
     let towerTargetModes = null;
+    let defaultLanguage = null;
 
     const skillData = [];
 
@@ -653,13 +678,14 @@
             ownUserData = data;
 
             initStatisticsSelectDisplay();
-            initStatsSelectDisplay();
+            initStatsUserSelectDisplay();
 
             socket.emit("getUiTemplates", {language}, (res) => {
                 console.log("getUiTemplates", res);
                 towerUiTemplates = res.towerUiTemplates;
                 powerUpUiTemplates = res.powerUpUiTemplates;
                 towerTargetModes = res.towerTargetModes;
+                defaultLanguage = res.language || {};
 
                 renderPowerUpsTable();
             });
@@ -703,7 +729,7 @@
             act();
             delete userDataSet[data.user.uid];
             delete towerMainValuesSet[data.user.uid];
-            delete towerStatsDataSet[data.user.uid];
+            delete towerSkillDataSet[data.user.uid];
             delete towerUpgradeDataSet[data.user.uid];
             if (ownUserId === data.user.uid) {
                 resetOwnTower();
@@ -714,6 +740,7 @@
             }
             if (statsUid === data.user.uid) {
                 statsUid = null;
+                statsSkillId = null;
                 renderStatsTable();
             }
             resetSelectFills();
@@ -734,12 +761,16 @@
         socket.on("towerStatsValuesChanged", (data, act) => {
             act();
             towerUpgradeDataSet[data.user.uid] = data.upgradeData;
-            towerStatsDataSet[data.user.uid] = data.statsData;
+            towerSkillDataSet[data.user.uid] = data.skillData;
             if (ownUserId === data.user.uid) {
                 if (!skillBuilded) fillSkillContainer();
                 hasTower = true;
                 setToggleButtonEnabled(true);
                 setProfileButtonsEnabled(true);
+            }
+
+            if (statsUid === data.user.uid) {
+                fillStatsSkillSelectIfNeeded();
             }
             renderStatsTable();
         });
@@ -798,7 +829,7 @@
 
         userDataSet = {};
         towerMainValuesSet = {};
-        towerStatsDataSet = {};
+        towerSkillDataSet = {};
         towerUpgradeDataSet = {};
 
         mapCredits = 0;
@@ -824,7 +855,7 @@
         const credits = mapCredits ?? "–";
 
         document.getElementById("mapInfoName").textContent = mapName;
-        document.getElementById("mapInfoType").textContent = mapType;
+        document.getElementById("mapInfoType").textContent = lang("map_"+mapType);
         document.getElementById("mapInfoSize").textContent = mapSize;
         document.getElementById("mapInfoDiff").textContent = mapDiff;
         document.getElementById("mapInfoPlayersCombined").textContent = `${activePlayerCount} / ${maxPlayers}`;
@@ -835,11 +866,11 @@
         skillBuilded = true;
         const towerId = towerMainValuesSet[ownUserId]?.tower;
         const towerUpgrades = towerUpgradeDataSet[ownUserId];
-        if(towerUpgrades) {
-            towerUpgrades.forEach((data, idx) => {
-                const name = data.name;
-                const upgradeable = data.upgradeable;
-                if (name && upgradeable) createSkillRow(towerId, data, idx);
+        if (towerUpgrades) {
+            towerUpgrades.forEach((skill, idx) => {
+                const name = skill.bonus;
+                const upgradeable = skill.upgradeable;
+                if (name && upgradeable) createSkillRow(towerId, skill, idx);
             });
         }
     }
@@ -857,9 +888,9 @@
         const label = document.createElement('div');
         label.className = 'skill-name';
         const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID)?.upgrades;
-        const name = towerUpgradeUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
-        const limit = skill.limit ? skill.limit : "∞";
-        label.textContent = `${name} ${skill.count}/${limit}`;
+        const name = towerUpgradeUiTemplates?.find(x => x.name === skill.bonus)?.readName || skill.bonus;
+        const limit = skill.limit > -1 ? skill.limit : "∞";
+        label.textContent = `${name} ${skill.used}/${limit}`;
         row.appendChild(label);
 
         // Create Buttons
@@ -869,7 +900,7 @@
         fillBtn.style.marginLeft = "6px";
         fillBtn.onclick = () => {
             for (let i = 0; i < MAX_SKILL_BOXES; i++) {
-                skillData[i] = skill.name;
+                skillData[i] = skill.bonus;
             }
             syncVisualWithSkillData(skillData);
         };
@@ -880,7 +911,7 @@
         clearBtn.style.marginLeft = "6px";
         clearBtn.onclick = () => {
             for (let i = 0; i < MAX_SKILL_BOXES; i++) {
-                if (skillData[i] === skill.name) {
+                if (skillData[i] === skill.bonus) {
                     skillData[i] = null;
                 }
             }
@@ -908,7 +939,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+                const name = towerUpgradeDataSet[ownUserId][row]?.bonus;
 
                 if (skillData[column] === name) {
                     dragMode = "remove";
@@ -926,7 +957,7 @@
 
                 const column = Number(box.dataset.index);
                 const row = Number(box.dataset.skill);
-                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+                const name = towerUpgradeDataSet[ownUserId][row]?.bonus;
 
                 if (dragMode === "set" && skillData[column] !== name) {
                     skillData[column] = name;
@@ -1032,7 +1063,7 @@
             return;
         }
 
-        if (!confirm(lang("profile_really_delete_msg",selectedName))) {
+        if (!confirm(lang("profile_really_delete_msg", selectedName))) {
             return;
         }
 
@@ -1129,7 +1160,7 @@
             const skillIdx = Number(box.dataset.skill);
             const expectedSkillName = skillArray[index];
 
-            const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.name;
+            const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.bonus;
 
             if (expectedSkillName && actualName === expectedSkillName) {
                 box.classList.add('active');
@@ -1139,121 +1170,90 @@
         });
     }
 
-    function calculateStats(stat) {
-        let total = 0;
-        let base = (stat.basic || 0) + (stat.upg || 0);
-        total += base;
-        total += (base * stat.boost * 0.01) || 0;
-        total += (base * stat.skill * 0.01) || 0;
-        total += (base * stat.buff * 0.01) || 0;
-        total += (base * stat.item * 0.01) || 0;
-        total += (base * stat.team * 0.01) || 0;
-        total += (base * stat.res1 * 0.01) || 0;
-        total += (base * stat.res2 * 0.01) || 0;
-        total += (base * stat.res3 * 0.01) || 0;
-        return total;
-    }
-
     function renderStatsTable() {
         const uid = statsUid ?? ownUserId;
+        updateStatsTower(uid);
+        const skillId = statsSkillId ?? 0;
         const towerId = towerMainValuesSet[uid]?.tower;
         const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerId)?.upgrades;
 
         const container = document.getElementById("statsTableContainer");
         container.innerHTML = "";
 
-        const stats = towerStatsDataSet[uid];
+        const stats = towerSkillDataSet[uid];
         if (!Array.isArray(stats) || stats.length === 0) return;
+
+        const statsEntry = stats[skillId];
+        if (typeof statsEntry !== 'object' || statsEntry === null) return;
+
+        const statsEntryValues = statsEntry.values;
+        if (!Array.isArray(statsEntryValues) || statsEntryValues.length === 0) return;
+
+        const headers = ["name", "value", "basic", "upg", "boost", "skill", "buff", "item", "team"];
 
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
         table.style.width = "100%";
         table.style.fontSize = "14px";
 
-        const dynamicKeys = Object.keys(stats[0]).filter(k => k !== "name" && !k.includes("res"));
-        const headers = ["name", "total", ...dynamicKeys];
-
         const thead = document.createElement("thead");
         const trHead = document.createElement("tr");
 
-        headers.forEach(h => {
+        for (const h of headers) {
             const th = document.createElement("th");
-            th.textContent = lang("stats_"+h);
+            th.textContent = lang("stats_" + h);
             th.style.border = "1px solid #444";
             th.style.padding = "4px";
             th.style.backgroundColor = "#222";
             th.style.color = "#ccc";
             trHead.appendChild(th);
-        });
+        }
         thead.appendChild(trHead);
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
 
-        stats.forEach(entry => {
+        for (const entry of statsEntryValues) {
             const tr = document.createElement("tr");
-            const towerUpgradeCount = towerUpgradeDataSet[uid]?.find(x => x.name === entry.name)?.count;
+            //const towerUpgradeCount = towerUpgradeDataSet[uid]?.find(x => x.name === entry.name)?.count;
+            if (entry.basic < 0) continue;
 
-            headers.forEach(h => {
+            for (const head of headers) {
+
                 const td = document.createElement("td");
                 td.style.border = "1px solid #444";
 
-                switch (h) {
-                    case "total":
-                        const total = calculateStats(entry);
-                        td.textContent = formatValue(total);
+                switch (head) {
+                    case "value":
+                        td.textContent = entry.value;
                         td.style.fontWeight = "bold";
                         td.style.color = "limegreen";
                         break;
 
                     case "name":
-                        const readName = towerUpgradeUiTemplates?.find(x => x.name === entry[h])?.readName || entry[h];
+                        const readName = towerUpgradeUiTemplates?.find(x => x.name === entry[head])?.readName || entry[head];
                         td.textContent = readName;
                         td.style.color = "#ccc";
                         break;
 
                     case "basic":
-                        td.textContent = formatValue(entry[h]);
+                        td.textContent = entry.basic;
                         td.style.color = "#ffd700";
-                        td.style.backgroundColor = "#191919";
-                        break;
-
-                    case "upg":
-                        const wrapper1 = document.createElement("div");
-                        wrapper1.style.display = "flex";
-                        wrapper1.style.flexDirection = "column";
-                        wrapper1.style.alignItems = "center";
-
-                        const valueDiv1 = document.createElement("div");
-                        valueDiv1.textContent = formatValue(entry[h]);
-                        valueDiv1.style.color = "#ccc";
-
-                        const upgradesDiv1 = document.createElement("div");
-                        upgradesDiv1.textContent = `(${towerUpgradeCount})`;
-                        upgradesDiv1.style.fontSize = "11px";
-                        upgradesDiv1.style.color = "#888";
-
-                        wrapper1.appendChild(valueDiv1);
-                        wrapper1.appendChild(upgradesDiv1);
-                        td.appendChild(wrapper1);
                         break;
 
                     default:
-                        const percent = entry[h] ?? 0;
-                        const base = (entry.basic ?? 0) + (entry.upg ?? 0);
-                        const realValue = percent * base * 0.01;
-
                         const wrapper = document.createElement("div");
                         wrapper.style.display = "flex";
                         wrapper.style.flexDirection = "column";
                         wrapper.style.alignItems = "center";
 
                         const valueDiv = document.createElement("div");
-                        valueDiv.textContent = formatValue(realValue);
+                        valueDiv.textContent = entry[head];
                         valueDiv.style.color = "#ccc";
 
                         const percentDiv = document.createElement("div");
-                        percentDiv.textContent = `(${formatValue(percent)}%)`;
+                        if(entry[head+"_pct"])
+                            percentDiv.textContent = `(${entry[head+"_pct"]}%)`;
                         percentDiv.style.fontSize = "11px";
                         percentDiv.style.color = "#888";
 
@@ -1266,10 +1266,10 @@
                 td.style.padding = "4px";
                 td.style.textAlign = "center";
                 tr.appendChild(td);
-            });
+            }
 
             tbody.appendChild(tr);
-        });
+        }
 
         table.appendChild(tbody);
         container.appendChild(table);
@@ -1283,8 +1283,8 @@
 
         // Only upgradeable skills
         const validSkills = towerUpgradeDataSet[ownUserId]
-            .filter(s => s.upgradeable && s.name)
-            .map(s => s.name);
+            .filter(s => s.upgradeable === 1 && s.bonus)
+            .map(s => s.bonus);
 
         if (validSkills.length === 0) {
             showToast(lang("no_valid_skill_msg"), "error");
@@ -1417,6 +1417,28 @@
     function setStatsUid() {
         const select = document.getElementById("statsUserSelect");
         statsUid = parseInt(select.value);
+        statsSkillId = 0;
+        updateStatsSkillSelectOptions();
+        renderStatsTable();
+    }
+
+    function updateStatsTower(uid) {
+        const towerNameLabel = document.getElementById("statsTowerNameLabel");
+        if(!towerNameLabel) return;
+
+        const tower = towerMainValuesSet[uid];
+        if(tower) {
+            const readName = towerUiTemplates?.find(x => x.tower === tower.tower)?.readName || tower.name;
+            towerNameLabel.style.display = "block";
+            towerNameLabel.textContent = readName;
+        } else {
+            towerNameLabel.style.display = "none";
+        }
+    }
+
+    function setStatsSkillId() {
+        const select = document.getElementById("statsSkillSelect");
+        statsSkillId = parseInt(select.value);
         renderStatsTable();
     }
 
@@ -1426,15 +1448,22 @@
         statisticsSelectFilled = true;
     }
 
-    function fillStatsSelectIfNeeded() {
-        if (statsSelectFilled) return;
-        updateStatsSelectOptions();
-        statsSelectFilled = true;
+    function fillStatsUserSelectIfNeeded() {
+        if (statsUserSelectFilled) return;
+        updateStatsUserSelectOptions();
+        statsUserSelectFilled = true;
+    }
+
+    function fillStatsSkillSelectIfNeeded() {
+        if (statsSkillSelectFilled) return;
+        updateStatsSkillSelectOptions();
+        statsSkillSelectFilled = true;
     }
 
     function resetSelectFills() {
         statisticsSelectFilled = false;
-        statsSelectFilled = false;
+        statsUserSelectFilled = false;
+        statsSkillSelectFilled = false;
     }
 
     function updateStatisticsSelectOptions() {
@@ -1465,11 +1494,11 @@
         });
 
         if ([...select.options].some(opt => opt.value === currentValue)) {
-            select.value = currentValue;
+            select.value = currentValue || ownUserId;
         }
     }
 
-    function updateStatsSelectOptions() {
+    function updateStatsUserSelectOptions() {
         const select = document.getElementById("statsUserSelect");
         if (!select) return;
 
@@ -1501,6 +1530,39 @@
         }
     }
 
+    function updateStatsSkillSelectOptions() {
+
+        const select = document.getElementById("statsSkillSelect");
+        if (!select) return;
+
+        const currentValue = select.value || 0;
+        select.innerHTML = "";
+
+        const towerSkillData = towerSkillDataSet[statsUid];
+        if (!towerSkillData) return;
+
+        const others = Object.keys(towerSkillData)
+            .map(id => ({
+                id,
+                name: `${lang("skill")} ${Number.parseInt(id) + 1} (${getDamageTypeLang(towerSkillData[id].damageType)})`
+            }));
+
+        others.forEach(({id, name}) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+
+        if ([...select.options].some(opt => opt.value === currentValue)) {
+            select.value = currentValue || 0;
+        }
+    }
+
+    function getDamageTypeLang(damageType) {
+        return defaultLanguage[`damageType_${damageType}`] || lang("other") || "Unknown";
+    }
+
     function initStatisticsSelectDisplay() {
         const select = document.getElementById("statisticsUserSelect");
         if (!select || ownUserId === 0) return;
@@ -1516,7 +1578,7 @@
         }
     }
 
-    function initStatsSelectDisplay() {
+    function initStatsUserSelectDisplay() {
         const select = document.getElementById("statsUserSelect");
         if (!select || ownUserId === 0) return;
 
@@ -1613,8 +1675,8 @@
 
             const btn = document.createElement('button');
             btn.textContent = lang("pwrup_use");
-            btn.addEventListener("click",() => {
-                socket.emit('usePowerUp', { group: powerUp.group, name: powerUp.name });
+            btn.addEventListener("click", () => {
+                socket.emit('usePowerUp', {group: powerUp.group, name: powerUp.name});
             });
 
             tdAction.appendChild(btn);
@@ -1638,14 +1700,14 @@
 
         const cells = row.children;
 
-        if(cells[1])
+        if (cells[1])
             cells[1].textContent = updatedData.used;
-        if(cells[2])
+        if (cells[2])
             cells[2].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
-        if(cells[3])
+        if (cells[3])
             cells[3].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
 
-        if(cells[4]) {
+        if (cells[4]) {
             const timeoutCell = cells[4];
             if (typeof updatedData.timeout === 'number') {
                 timeoutCell.dataset.timeout = updatedData.timeout;
@@ -1657,11 +1719,11 @@
             }
         }
 
-        if(cells[5])
+        if (cells[5])
             cells[5].textContent = ownUserData?.powerUps?.find(p =>
                 p.group === group && p.name === name)?.value || 0;
     }
-    
+
     function updatePowerUpTimeout() {
         const cells = document.querySelectorAll('#powerUpsContainer td[data-timeout]');
         const now = Date.now();
@@ -1726,7 +1788,7 @@
             const authToken = data.authToken || authToken;
             const userToken = data.userToken || userToken;
 
-            start(authToken,userToken);
+            start(authToken, userToken);
         } else {
             console.warn("Received message does not contain expected user data.");
         }
@@ -1791,7 +1853,10 @@
             loading: "Loading data...",
             name_: "Name",
             user_: "User: ",
+            skill_: "Skill: ",
             map_: "Map: ",
+            map_green: "Green",
+            map_ice: "Ice",
             tower_: "Tower: ",
             level_: "Level: ",
             typ_: "Typ: ",
@@ -1803,10 +1868,12 @@
             tower_stats: "Attributes",
             tower_statistics: "Statistics",
             power_ups: "Power-Ups",
+            skill:"Skill",
             full: "Map",
             wave: "Wave",
             start: "Start",
             stop: "Stop",
+            other: "other",
             profiles_: "Profiles: ",
             start_stop: "Start / Stop",
             select_random: "Select Random",
@@ -1855,6 +1922,7 @@
             loading: "Daten werden geladen...",
             name_: "Name",
             user_: "Benutzer: ",
+            skill_: "Fähigkeit: ",
             map_: "Karte: ",
             tower_: "Turm: ",
             level_: "Stufe: ",
@@ -1864,14 +1932,18 @@
             player_: "Spieler: ",
             credits_: "Kredits: ",
             map: "Karte",
+            map_green: "Grün",
+            map_ice: "Eis",
             upgrade: "Verbesserung",
             tower_stats: "Eigenschaften",
             tower_statistics: "Statistiken",
             power_ups: "Verstärkungen",
+            skill:"Fähigkeit",
             full: "Karte",
             wave: "Welle",
             start: "Start",
             stop: "Stop",
+            other: "anderer",
             profiles_: "Profile: ",
             start_stop: "Start / Stop",
             select_random: "Zufällige Auswahl",
@@ -1893,7 +1965,7 @@
             pwrup_use: "Verwenden",
 
             stats_name: "Name",
-            stats_total: "Total",
+            stats_value: "Total",
             stats_basic: "Basic",
             stats_upg: "Upgrade",
             stats_skill: "Skill",
