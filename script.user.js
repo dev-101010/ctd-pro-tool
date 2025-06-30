@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         C-TD Pro Tool
-// @namespace    https://dev-101010.de/ctdpt/script.user.js
-// @version      0.2
+// @namespace    https://dev-101010.de/ctdt/script.user.js
+// @version      0.20
 // @description  C-TD Pro Tool
 // @author       dev-101010
 // @match        https://ctddev.shimly-dev.de/member/battlefield
@@ -36,12 +36,12 @@
         if (!battleButtonContainer) return;
 
         const button = document.createElement("button");
-        button.textContent = (userLanguage === "de" ? "Pro Tool öffnen" : "Open Pro Tool") + " (beta)";
+        button.textContent = (userLanguage === "de" ? "Pro Tool öffnen" : "Open Pro Tool");
         button.classList.add("btn", "btn-success");
         button.style.margin = "5px";
         button.addEventListener("click", async () => {
 
-            const popupUrl = "https://dev-101010.de/ctdpt/popup.html";
+            const popupUrl = "https://dev-101010.de/ctdt/popup.html";
 
             const bust = Date.now();
             const response = await fetch(`${popupUrl}?v=${bust}`, {
