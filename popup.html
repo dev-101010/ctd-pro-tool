@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>C-TD Pro Tool</title>
+    <script src="https://www.c-td.de/assets/custom/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #121212;
+            color: white;
+        }
+
+        .map-info-bar {
+            background-color: #000000;
+            color: #ccc;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            cursor: default;
+            user-select: none;
+        }
+
+        #ping {
+            font-size: 12px;
+            cursor: default;
+        }
+
+        .info-block {
+            min-width: 120px;
+        }
+
+        .tab-menu {
+            display: flex;
+            background-color: #222;
+        }
+
+        .tab-menu button {
+            flex: 1;
+            padding: 10px;
+            background-color: #333;
+            color: #ccc;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab-menu button:hover,
+        .tab-menu button.active {
+            background-color: #444;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .tab-content.active {
+            display: block;
+
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #ccc;
+            gap: 10px;
+        }
+
+        .header-bar button,
+        .header-bar select {
+            padding: 4px 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        select, button {
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .skill-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .skill-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .skill-name {
+            color: #ccc;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .skill-uses {
+            color: #ccc;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .skill-boxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .box {
+            width: 12px;
+            height: 12px;
+            background-color: #444;
+            border: 1px solid #666;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .box.active {
+            background-color: limegreen;
+        }
+
+        #loadingMessage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-family: sans-serif;
+            z-index: 9999;
+        }
+
+        #toggleStartStop {
+            border-radius: 4px;
+        }
+
+        #toggleStartStop:hover {
+            scale: 1.1;
+        }
+
+        #toggleStartStop:active {
+            scale: 0.9;
+        }
+
+        #toggleStartStop:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        .profileButton {
+            border-radius: 4px;
+        }
+
+        .profileButton:hover {
+            scale: 1.1;
+        }
+
+        .profileButton:active {
+            scale: 0.9;
+        }
+
+        .profileButton:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .miniSkillButton {
+            border-radius: 4px;
+            font-size: 11px;
+            padding: 2px 4px;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .miniSkillButton:hover {
+            scale: 1.1;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .miniSkillButton:active {
+            scale: 0.9;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .miniSkillButton:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        #toastContainer {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .uidInput {
+            padding: 4px 6px;
+            font-size: 14px;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+
+        .uidInput:focus {
+            outline: none;
+            border-color: #777;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .statCard {
+            padding: 6px 10px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .statCard.even {
+            background-color: #1a1a1a;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .statCard.odd {
+            background-color: #222;
+        }
+
+        .autoRefreshWrapper {
+            position: relative;
+            width: 28px;
+            height: 28px;
+        }
+
+        .autoRefreshBtn {
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinnerOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .map-info-panel {
+            padding: 8px 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 4px 12px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .map-cell {
+            padding: 4px 6px;
+            border: 1px solid #333;
+            background-color: #222;
+        }
+
+        .map-cell.label {
+            font-weight: bold;
+            color: #aaa;
+            background-color: #1e1e1e;
+            text-align: right;
+        }
+
+        .map-cell.value {
+            color: #ccc;
+        }
+
+        @keyframes spin {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast {
+            background-color: #222;
+            color: #ccc;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            min-width: 160px;
+            max-width: 240px;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: toast-in 0.2s ease-out forwards;
+            pointer-events: auto;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.success {
+            border-left: 3px solid limegreen;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.error {
+            border-left: 3px solid crimson;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .toast.info {
+            border-left: 3px solid dodgerblue;
+        }
+
+        #loadingMessage {
+            color: #ccc;
+        }
+
+        @keyframes toast-in {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toast-out {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingMessage">
+    <p data-lang="loading"></p>
+</div>
+
+<div id="mainContent" style="display: none;">
+
+    <div id="mapInfoBar" class="map-info-bar">
+        <span id="ping">⬤</span>
+        <div><span class="info-block" data-lang="user_"></span><span id="userName">–</span></div>
+        <div><span class="info-block" data-lang="map_"></span><span id="mapName">–</span></div>
+        <div><span class="info-block" data-lang="tower_"></span><span id="towerName">–</span></div>
+        <div><span class="info-block" data-lang="level_"></span><span id="towerLevel">–</span></div>
+    </div>
+
+    <div class="tab-menu">
+        <button class="tab-button active" data-lang="map" onclick="showTab(0)"></button>
+        <button class="tab-button" data-lang="upgrade" onclick="showTab(1)"></button>
+        <button class="tab-button" data-lang="tower_stats" onclick="showTab(2)"></button>
+        <button class="tab-button" data-lang="tower_statistics" onclick="showTab(3)"></button>
+        <button class="tab-button" data-lang="power_ups" onclick="showTab(4)"></button>
+    </div>
+
+    <div class="tab-content active" id="mapTab">
+        <div class="map-info-panel">
+            <div class="map-grid">
+                <div class="map-cell label" data-lang="name_"></div>
+                <div class="map-cell value" id="mapInfoName">–</div>
+
+                <div class="map-cell label" data-lang="typ_"></div>
+                <div class="map-cell value" id="mapInfoType">–</div>
+
+                <div class="map-cell label" data-lang="size_"></div>
+                <div class="map-cell value" id="mapInfoSize">–</div>
+
+                <div class="map-cell label" data-lang="difficulty_"></div>
+                <div class="map-cell value" id="mapInfoDiff">–</div>
+
+                <div class="map-cell label" data-lang="player_"></div>
+                <div class="map-cell value" id="mapInfoPlayersCombined">– / –</div>
+
+                <div class="map-cell label" data-lang="credits_"></div>
+                <div class="map-cell value" id="mapInfoCredits">–</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div class="header-bar">
+            <div class="controls">
+                <button id="toggleStartStop" data-tool-lang="start_stop" onclick="toggleButtonState()"
+                        style="background-color: green;" data-lang="start">
+                </button>
+                <button id="randomButton" class="profileButton" data-tool-lang="select_random" onclick="randomizeSkillData()">
+                    🎲
+                </button>
+            </div>
+            <div>
+                <span data-lang="credits_"></span>
+                <span id="openCredits">0</span> / <span id="neededCredits">0</span>
+            </div>
+            <div class="controls">
+                <label for="profileSelect" data-lang="profiles_"></label>
+                <select data-tool-lang="select_profile" id="profileSelect">
+                    <!-- Filled dynamic -->
+                </select>
+                <button id="newProfileButton" data-tool-lang="create_profile" class="profileButton" onclick="newProfile()">➕
+                </button>
+                <button id="deleteProfileButton" data-tool-lang="delete_profile" class="profileButton" onclick="deleteProfile()">
+                    🗑️
+                </button>
+                <button id="loadProfileButton" data-tool-lang="load_profile" class="profileButton" onclick="loadProfile()">📂
+                </button>
+                <button id="saveProfileButton" data-tool-lang="save_profile" class="profileButton" onclick="saveProfile()">
+                    💾
+                </button>
+            </div>
+        </div>
+
+        <div class="skill-container" id="skillContainer">
+            <!-- Dynamic Generated Skills -->
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div class="header-bar">
+            <div class="controls">
+                <label for="statsUserSelect" data-lang="user_"></label>
+                <select id="statsUserSelect" class="uidInput" onfocus="fillStatsSelectIfNeeded()"
+                        onchange="setStatsUid()">
+                    <!-- Dynamic filled -->
+                </select>
+            </div>
+        </div>
+        <div id="statsTableContainer"></div>
+    </div>
+
+    <div class="tab-content">
+        <div class="header-bar" id="statisticsMenu" style="justify-content: space-between;">
+            <div class="controls">
+                <label for="statisticsUserSelect" data-lang="user_"></label>
+                <select id="statisticsUserSelect" class="uidInput" onfocus="fillStatisticsSelectIfNeeded()"
+                        onchange="setSelectedStatisticsUid()">
+                    <!-- Dynamic filled -->
+                </select>
+                <button id="statModeToggle" data-tool-lang="change_type" class="profileButton" style="margin-left: 16px;"
+                        onclick="toggleStatisticMode()" data-lang="full">
+                </button>
+            </div>
+            <div class="controls">
+                <button onclick="triggerStatisticsRefresh()" data-tool-lang="refresh" class="profileButton">🔁</button>
+                <div class="autoRefreshWrapper" data-tool-lang="auto_refresh">
+                    <button id="autoRefreshToggle" onclick="toggleAutoRefresh()" class="profileButton autoRefreshBtn">🚘
+                    </button>
+                    <div id="autoRefreshSpinner" class="spinnerOverlay" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statisticsTableContainer"></div>
+    </div>
+
+    <div class="tab-content" id="powerUpsTab">
+        <div id="powerUpsContainer">
+            <!-- dynamic filled -->
+        </div>
+    </div>
+
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+
+    let socket = null;
+    const MAX_SKILL_BOXES = 100;
+
+    let isMouseDown = false;
+    let dragMode = null;
+
+    let mapData = {};
+
+    let ownUserId = null;
+    let ownUserData = {};
+    let userDataSet = {};
+
+    let towerMainValuesSet = {};
+    let towerStatsDataSet = {};
+    let towerUpgradeDataSet = {};
+
+    let mapCredits = 0;
+    let openCredits = 0;
+    let neededCredits = 0;
+
+    let skillBuilded = false;
+    let isRunning = false;
+    let hasMap = false;
+    let hasTower = false;
+
+    let statisticsUid = null;
+    let statsUid = null;
+    let autoRefreshEnabled = false;
+    let autoRefreshInterval = null;
+    let statisticsSelectFilled = false;
+    let statsSelectFilled = false;
+    let statisticsMode = "full";
+
+    let language = "en";
+    let towerUiTemplates = null;
+    let powerUpUiTemplates = null;
+    let towerTargetModes = null;
+
+    const skillData = [];
+
+    const loadingMessage = document.getElementById("loadingMessage");
+    const mainContent = document.getElementById("mainContent");
+    const skillContainer = document.getElementById('skillContainer');
+    const openCreditsEl = document.getElementById('openCredits');
+    const neededCreditsEl = document.getElementById('neededCredits');
+
+    function lang(key, ...args) {
+        const dict = translations[language] || translations["en"];
+        const value = dict[key];
+        return typeof value === "function" ? value(...args) : value || key;
+    }
+
+    function showTab(index) {
+        const buttons = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+
+        buttons[index].classList.add('active');
+        contents[index].classList.add('active');
+
+        if (index === 3) triggerStatisticsRefresh();
+    }
+
+    function startSocket(serverURI, userToken, authToken) {
+        socket = io(serverURI, {
+            reconnection: true,
+            reconnectionDelayMax: 1000,
+            reconnectionAttempts: 0,
+            pingTimeout: 20000,
+            pingInterval: 25000,
+
+            auth: {
+                authToken: authToken
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            socket.disconnect();
+        });
+
+        socket.onAny((event, ...args) => {
+            if (event !== "ding" && event !== "dong") {
+                console.log(event, args);
+            }
+        });
+
+        socket.on("ding", (args) => {
+            socket.emit("dong", args);
+            const icon = document.getElementById("ping");
+
+            // noinspection JSUnusedLocalSymbols
+            const serverTime = args.t;
+            const latency = args.l;
+
+            let color;
+            if (latency < 50) {
+                color = "lime";
+            } else if (latency < 100) {
+                color = "gold";
+            } else if (latency < 200) {
+                color = "orange";
+            } else {
+                color = "red";
+            }
+
+            icon.style.color = color;
+            icon.title = (latency != null ? latency + "ms" : "–");
+        });
+
+        socket.on("connect", () => {
+            socket.emit("authUser", {
+                token: userToken
+            });
+            console.log("C-TD Pro Tool connected!");
+        });
+
+        socket.on("authSuccess", () => {
+            socket.emit("setPage", {
+                page: "battlefield"
+            });
+            setTimeout(() => {
+                loadingMessage.style.display = "none";
+                mainContent.style.display = "block";
+            }, 500);
+        });
+
+        socket.on("updateUserDetails", (data, act) => {
+            act();
+            ownUserId = data.user.uid;
+            ownUserData = data;
+
+            initStatisticsSelectDisplay();
+            initStatsSelectDisplay();
+
+            socket.emit("getUiTemplates", {language}, (res) => {
+                console.log("getUiTemplates", res);
+                towerUiTemplates = res.towerUiTemplates;
+                powerUpUiTemplates = res.powerUpUiTemplates;
+                towerTargetModes = res.towerTargetModes;
+
+                renderPowerUpsTable();
+            });
+        });
+
+        socket.on("mapLoaded", (data, act) => {
+            act();
+            resetMap();
+            mapData = data;
+            hasMap = true;
+            updateMapInfo();
+            renderPowerUpsTable();
+        });
+
+        socket.on("mapClosed", (data, act) => {
+            act();
+            resetMap();
+            renderPowerUpsTable();
+        });
+
+        socket.on("mapCreditsChanged", (data, act) => {
+            act();
+            mapCredits = data.amount;
+            updateCredits();
+            updateMapTabInfo();
+        });
+
+        socket.on("userTowerPlaced", (data, act) => {
+            act();
+            userDataSet[data.user.uid] = data.user;
+            towerMainValuesSet[data.user.uid] = data.data;
+            resetSelectFills();
+            if (ownUserId === data.user.uid) {
+                updateCredits();
+                updateMapInfo();
+            }
+            updateMapTabInfo();
+        });
+
+        socket.on("removeTower", (data, act) => {
+            act();
+            delete userDataSet[data.user.uid];
+            delete towerMainValuesSet[data.user.uid];
+            delete towerStatsDataSet[data.user.uid];
+            delete towerUpgradeDataSet[data.user.uid];
+            if (ownUserId === data.user.uid) {
+                resetOwnTower();
+            }
+            if (statisticsUid === data.user.uid) {
+                statisticsUid = null;
+                resetStatistics();
+            }
+            if (statsUid === data.user.uid) {
+                statsUid = null;
+                renderStatsTable();
+            }
+            resetSelectFills();
+            updateMapTabInfo();
+        });
+
+        socket.on("towerMainValuesChanged", (data, act) => {
+            act();
+            userDataSet[data.user.uid] = data.user;
+            towerMainValuesSet[data.user.uid] = data.data;
+            resetSelectFills();
+            if (ownUserId === data.user.uid) {
+                updateCredits();
+                updateMapInfo();
+            }
+        });
+
+        socket.on("towerStatsValuesChanged", (data, act) => {
+            act();
+            towerUpgradeDataSet[data.user.uid] = data.upgradeData;
+            towerStatsDataSet[data.user.uid] = data.statsData;
+            if (ownUserId === data.user.uid) {
+                if (!skillBuilded) fillSkillContainer();
+                hasTower = true;
+                setToggleButtonEnabled(true);
+                setProfileButtonsEnabled(true);
+            }
+            renderStatsTable();
+        });
+
+        socket.on("powerUpUsed", (data, act) => {
+            act();
+
+            const group = data.powerUp.group;
+            const name = data.powerUp.name;
+
+            const powerUpIdx = mapData.mapPowerUps.findIndex(
+                p => p.group === group && p.name === name
+            );
+            if (powerUpIdx >= 0) {
+                mapData.mapPowerUps[powerUpIdx] = data.powerUp;
+            }
+
+            if (ownUserId === data.user.uid) {
+                const reducePowerUp = ownUserData.powerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                if (reducePowerUp) {
+                    reducePowerUp.value = reducePowerUp.value - 1;
+                }
+            }
+
+            updatePowerUpRow(data.powerUp);
+        });
+    }
+
+    function updateCredits() {
+        const creditsUsed = towerMainValuesSet[ownUserId]?.creditsUsed ?? 0;
+        openCredits = mapCredits - creditsUsed;
+        openCreditsEl.innerHTML = `${openCredits}`;
+        const cost = mapData.map?.towerUpgradeCost ?? 0;
+        const multi = towerMainValuesSet[ownUserId]?.upgradeMulti ?? 1;
+        neededCredits = cost * multi;
+        neededCreditsEl.innerHTML = `${neededCredits}`;
+    }
+
+    function resetOwnTower() {
+
+        skillBuilded = false;
+        hasTower = false;
+
+        updateCredits();
+        clearSkillContainer();
+        updateMapInfo();
+        setButtonState(false);
+        setToggleButtonEnabled(false);
+        setProfileButtonsEnabled(false);
+        renderStatsTable();
+    }
+
+    function resetMap() {
+        mapData = {};
+
+        userDataSet = {};
+        towerMainValuesSet = {};
+        towerStatsDataSet = {};
+        towerUpgradeDataSet = {};
+
+        mapCredits = 0;
+        openCredits = 0;
+        neededCredits = 0;
+
+        hasMap = false;
+
+        updateMapInfo();
+        resetOwnTower();
+        resetSelectFills();
+    }
+
+    function updateMapTabInfo() {
+        const map = mapData.map ?? {};
+
+        const mapName = map.name ?? "–";
+        const mapType = map.mapType ?? "–";
+        const mapSize = (map.sizeX && map.sizeY) ? `${map.sizeX}x${map.sizeY}` : "–";
+        const mapDiff = map.difficulty ?? "–";
+        const maxPlayers = map.players ?? "–";
+        const activePlayerCount = Object.keys(towerMainValuesSet).length ?? 0;
+        const credits = mapCredits ?? "–";
+
+        document.getElementById("mapInfoName").textContent = mapName;
+        document.getElementById("mapInfoType").textContent = mapType;
+        document.getElementById("mapInfoSize").textContent = mapSize;
+        document.getElementById("mapInfoDiff").textContent = mapDiff;
+        document.getElementById("mapInfoPlayersCombined").textContent = `${activePlayerCount} / ${maxPlayers}`;
+        document.getElementById("mapInfoCredits").textContent = credits;
+    }
+
+    function fillSkillContainer() {
+        skillBuilded = true;
+        const towerId = towerMainValuesSet[ownUserId]?.tower;
+        const towerUpgrades = towerUpgradeDataSet[ownUserId];
+        if(towerUpgrades) {
+            towerUpgrades.forEach((data, idx) => {
+                const name = data.name;
+                const upgradeable = data.upgradeable;
+                if (name && upgradeable) createSkillRow(towerId, data, idx);
+            });
+        }
+    }
+
+    function clearSkillContainer() {
+        while (skillContainer.firstChild) {
+            skillContainer.removeChild(skillContainer.firstChild);
+        }
+    }
+
+    function createSkillRow(towerID, skill, skillIndex) {
+        const row = document.createElement('div');
+        row.className = 'skill-row';
+
+        const label = document.createElement('div');
+        label.className = 'skill-name';
+        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerID)?.upgrades;
+        const name = towerUpgradeUiTemplates?.find(x => x.name === skill.name)?.readName || skill.name;
+        label.textContent = `${name}`;
+        row.appendChild(label);
+        
+        const uses = document.createElement('div');
+        uses.className = 'skill-uses';
+        const limit = skill.limit ? skill.limit : "∞";
+        uses.dataset.skill = skill.name;
+        uses.textContent = `${skill.count}/${limit}`;
+        row.appendChild(uses);
+
+        // Create Buttons
+        const fillBtn = document.createElement('button');
+        fillBtn.textContent = "⬆";
+        fillBtn.title = "Full skill";
+        fillBtn.style.marginLeft = "6px";
+        fillBtn.onclick = () => {
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+                skillData[i] = skill.name;
+            }
+            syncVisualWithSkillData(skillData);
+        };
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = "⬇";
+        clearBtn.title = "Empty skill";
+        clearBtn.style.marginLeft = "6px";
+        clearBtn.onclick = () => {
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+                if (skillData[i] === skill.name) {
+                    skillData[i] = null;
+                }
+            }
+            syncVisualWithSkillData(skillData);
+        };
+
+        fillBtn.className = "miniSkillButton";
+        clearBtn.className = "miniSkillButton";
+
+        // Add Buttons
+        row.appendChild(fillBtn);
+        row.appendChild(clearBtn);
+
+        const boxes = document.createElement('div');
+        boxes.className = 'skill-boxes';
+
+        for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+            const box = document.createElement('div');
+            box.className = 'box';
+            box.setAttribute('draggable', 'false');
+            box.dataset.index = i.toString();
+            box.dataset.skill = skillIndex;
+
+            box.addEventListener('mousedown', () => {
+
+                const column = Number(box.dataset.index);
+                const row = Number(box.dataset.skill);
+                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+
+                if (skillData[column] === name) {
+                    dragMode = "remove";
+                    skillData[column] = null;
+                } else {
+                    dragMode = "set";
+                    skillData[column] = name;
+                }
+
+                syncVisualWithSkillData(skillData);
+            });
+
+            box.addEventListener('mouseenter', () => {
+                if (!isMouseDown || !dragMode) return;
+
+                const column = Number(box.dataset.index);
+                const row = Number(box.dataset.skill);
+                const name = towerUpgradeDataSet[ownUserId][row]?.name;
+
+                if (dragMode === "set" && skillData[column] !== name) {
+                    skillData[column] = name;
+                } else if (dragMode === "remove" && skillData[column] === name) {
+                    skillData[column] = null;
+                }
+
+                syncVisualWithSkillData(skillData);
+            });
+
+            boxes.appendChild(box);
+        }
+
+        row.appendChild(boxes);
+        skillContainer.appendChild(row);
+    }
+
+    function loadProfiles() {
+        const profileSelect = document.getElementById('profileSelect');
+        profileSelect.innerHTML = '';
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        Object.keys(profiles).forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            profileSelect.appendChild(option);
+        });
+    }
+
+    function saveProfile() {
+        if (!hasTower) return;
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            showToast(lang("select_profile_msg"), "info");
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        profiles[selectedName] = skillData;
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        showToast(lang("profile_saved_msg"), "success");
+    }
+
+    function loadProfile() {
+        if (!hasTower) return;
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            showToast(lang("select_profile_msg"), "info");
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        const profile = profiles[selectedName];
+
+        if (Array.isArray(profile)) {
+            for (let i = 0; i < MAX_SKILL_BOXES; i++) skillData[i] = null;
+            profile.forEach((val, i) => {
+                skillData[i] = val || null;
+            });
+            syncVisualWithSkillData(skillData);
+            showToast(lang("profile_loaded_msg"), "success");
+        } else {
+            showToast(lang("profile_load_failed_msg"), "error");
+        }
+    }
+
+    function newProfile() {
+        const name = prompt(lang("new_profile_name_msg"));
+        if (!name) return;
+
+        const profileSelect = document.getElementById("profileSelect");
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+
+        if (profiles[name]) {
+            showToast(lang("profile_name_exists_msg"), "error");
+            return;
+        }
+
+        profiles[name] = [];
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        const option = document.createElement('option');
+        option.textContent = name;
+        option.value = name;
+        profileSelect.appendChild(option);
+        profileSelect.value = name;
+
+        showToast(lang("profile_created_msg"), "success");
+    }
+
+    function deleteProfile() {
+        const profileSelect = document.getElementById("profileSelect");
+        const selectedName = profileSelect.value;
+
+        if (!selectedName) {
+            showToast(lang("select_profile_delete_msg"), "info");
+            return;
+        }
+
+        if (!confirm(lang("profile_really_delete_msg",selectedName))) {
+            return;
+        }
+
+        const profiles = JSON.parse(localStorage.getItem("upgradeProfiles") || "{}");
+        delete profiles[selectedName];
+        localStorage.setItem("upgradeProfiles", JSON.stringify(profiles));
+
+        loadProfiles(); // Refresh select field
+        showToast(lang("profile_deleted_msg"), "success");
+    }
+
+    function updateMapInfo() {
+        const userName = ownUserData?.user?.displayname;
+        const mapName = mapData?.map?.name;
+        const towerName = towerMainValuesSet[ownUserId]?.name;
+        const towerID = towerMainValuesSet[ownUserId]?.tower;
+        const readName = towerUiTemplates?.find(x => x.tower === towerID)?.readName || towerName;
+        const towerLevel = towerMainValuesSet[ownUserId]?.level;
+        document.getElementById("userName").textContent = userName ?? "–";
+        document.getElementById("mapName").textContent = mapName ?? "–";
+        document.getElementById("towerName").textContent = readName ?? "–";
+        document.getElementById("towerLevel").textContent = (towerLevel ?? "–");
+        updateMapTabInfo();
+    }
+
+    function toggleButtonState() {
+        isRunning = !isRunning;
+        const btn = document.getElementById("toggleStartStop");
+        if (isRunning) {
+            btn.textContent = lang("stop");
+            btn.style.backgroundColor = "red";
+        } else {
+            btn.textContent = lang("start");
+            btn.style.backgroundColor = "green";
+        }
+
+        if (isRunning) startLoop(); else stopLoop();
+    }
+
+    function setToggleButtonEnabled(state) {
+        const btn = document.getElementById("toggleStartStop");
+        btn.disabled = !state;
+    }
+
+    function setProfileButtonsEnabled(state) {
+        const btn1 = document.getElementById("loadProfileButton");
+        const btn2 = document.getElementById("saveProfileButton");
+        const btn3 = document.getElementById("randomButton");
+        btn1.disabled = !state;
+        btn2.disabled = !state;
+        btn3.disabled = !state;
+    }
+
+    function setButtonState(running) {
+        if (isRunning !== running) {
+            toggleButtonState();
+        }
+    }
+
+    let lastUpdateTime = 0;
+
+    function upgradeTower() {
+        const now = Date.now();
+        if (now - lastUpdateTime < 1000) return;
+
+        lastUpdateTime = now;
+
+        if (openCredits <= 0 || neededCredits <= 0 || openCredits < neededCredits) return;
+        const skill = skillData.splice(0, 1);
+        const name = skill[0];
+        if (typeof name === 'string' && name) {
+            socket.emit('upgradeTower', {name});
+        }
+        syncVisualWithSkillData(skillData);
+    }
+
+    let loopInterval = null;
+
+    function startLoop() {
+        if (loopInterval !== null) return;
+        loopInterval = setInterval(upgradeTower, 1000);
+    }
+
+    function stopLoop() {
+        clearInterval(loopInterval);
+        loopInterval = null;
+    }
+
+    function syncVisualWithSkillData(skillArray) {
+
+        const allLabels = document.querySelectorAll('.skill-uses');
+        allLabels.forEach(label => {
+            const towerUpgrades = towerUpgradeDataSet[ownUserId];
+            if(towerUpgrades) {
+                const skill = towerUpgrades.find(skill => skill.name === label.dataset.skill)
+                const limit = skill.limit ? skill.limit : "∞";
+                label.textContent = `${skill.count}/${limit}`;
+            }
+        });
+
+        const allBoxes = document.querySelectorAll('.box');
+
+        allBoxes.forEach(box => {
+            const index = Number(box.dataset.index);
+            const skillIdx = Number(box.dataset.skill);
+            const expectedSkillName = skillArray[index];
+
+            const actualName = towerUpgradeDataSet[ownUserId]?.[skillIdx]?.name;
+
+            if (expectedSkillName && actualName === expectedSkillName) {
+                box.classList.add('active');
+            } else {
+                box.classList.remove('active');
+            }
+        });
+    }
+
+    function calculateStats(stat,additive) {
+        let total = 0;
+        let base = (stat.basic || 0) + (stat.upg || 0);
+        total += base;
+        if (additive) {
+            total += stat.boost || 0;
+            total += stat.skill || 0;
+            total += stat.buff || 0;
+            total += stat.item || 0;
+            total += stat.team || 0;
+            total += stat.res1 || 0;
+            total += stat.res2 || 0;
+            total += stat.res3 || 0;
+        } else {
+            total += (base * stat.boost * 0.01) || 0;
+            total += (base * stat.skill * 0.01) || 0;
+            total += (base * stat.buff * 0.01) || 0;
+            total += (base * stat.item * 0.01) || 0;
+            total += (base * stat.team * 0.01) || 0;
+            total += (base * stat.res1 * 0.01) || 0;
+            total += (base * stat.res2 * 0.01) || 0;
+            total += (base * stat.res3 * 0.01) || 0;
+        }
+        return total;
+    }
+
+    function isAdditive(h) {
+        return h==="critChance" || h==="bleedChance" || h==="buffCritChance" || h==="burnChance" || h==="damagePenetration" || h==="poisonChance" || h==="slowChance" || h==="slowValue";
+    }
+
+    function renderStatsTable() {
+        const uid = statsUid ?? ownUserId;
+        const towerId = towerMainValuesSet[uid]?.tower;
+        const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerId)?.upgrades;
+
+        const container = document.getElementById("statsTableContainer");
+        container.innerHTML = "";
+
+        const stats = towerStatsDataSet[uid];
+        if (!Array.isArray(stats) || stats.length === 0) return;
+
+        const table = document.createElement("table");
+        table.style.borderCollapse = "collapse";
+        table.style.width = "100%";
+        table.style.fontSize = "14px";
+
+        const dynamicKeys = Object.keys(stats[0]).filter(k => k !== "name" && !k.includes("res"));
+        const headers = ["name", "total", ...dynamicKeys];
+
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+
+        headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = lang("stats_"+h);
+            th.style.border = "1px solid #444";
+            th.style.padding = "4px";
+            th.style.backgroundColor = "#222";
+            th.style.color = "#ccc";
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+
+        stats.forEach(entry => {
+            const tr = document.createElement("tr");
+            const towerUpgradeCount = towerUpgradeDataSet[uid]?.find(x => x.name === entry.name)?.count;
+
+            headers.forEach(h => {
+                const td = document.createElement("td");
+                td.style.border = "1px solid #444";
+
+                switch (h) {
+                    case "total":
+                        const total = calculateStats(entry,isAdditive(h));
+                        td.textContent = formatValue(total);
+                        td.style.fontWeight = "bold";
+                        td.style.color = "limegreen";
+                        break;
+
+                    case "name":
+                        const readName = towerUpgradeUiTemplates?.find(x => x.name === entry[h])?.readName || entry[h];
+                        td.textContent = readName;
+                        td.style.color = "#ccc";
+                        break;
+
+                    case "basic":
+                        td.textContent = formatValue(entry[h]);
+                        td.style.color = "#ffd700";
+                        td.style.backgroundColor = "#191919";
+                        break;
+
+                    case "upg":
+                        const wrapper1 = document.createElement("div");
+                        wrapper1.style.display = "flex";
+                        wrapper1.style.flexDirection = "column";
+                        wrapper1.style.alignItems = "center";
+
+                        const valueDiv1 = document.createElement("div");
+                        valueDiv1.textContent = formatValue(entry[h]);
+                        valueDiv1.style.color = "#ccc";
+
+                        const upgradesDiv1 = document.createElement("div");
+                        upgradesDiv1.textContent = `(${towerUpgradeCount})`;
+                        upgradesDiv1.style.fontSize = "11px";
+                        upgradesDiv1.style.color = "#888";
+
+                        wrapper1.appendChild(valueDiv1);
+                        wrapper1.appendChild(upgradesDiv1);
+                        td.appendChild(wrapper1);
+                        break;
+
+                    default:
+                        const percent = entry[h] ?? 0;
+                        let realValue = 0;
+                        if(isAdditive(h)) {
+                            realValue = percent;
+                        } else {
+                            const base = (entry.basic ?? 0) + (entry.upg ?? 0);
+                            realValue = percent * base * 0.01;
+                        }
+
+                        const wrapper = document.createElement("div");
+                        wrapper.style.display = "flex";
+                        wrapper.style.flexDirection = "column";
+                        wrapper.style.alignItems = "center";
+
+                        const valueDiv = document.createElement("div");
+                        valueDiv.textContent = formatValue(realValue);
+                        valueDiv.style.color = "#ccc";
+
+                        const percentDiv = document.createElement("div");
+                        percentDiv.textContent = `(${formatValue(percent)}%)`;
+                        percentDiv.style.fontSize = "11px";
+                        percentDiv.style.color = "#888";
+
+                        wrapper.appendChild(valueDiv);
+                        wrapper.appendChild(percentDiv);
+                        td.appendChild(wrapper);
+                        break;
+                }
+
+                td.style.padding = "4px";
+                td.style.textAlign = "center";
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    function randomizeSkillData() {
+        if (!hasTower || !Array.isArray(towerUpgradeDataSet[ownUserId])) {
+            showToast(lang("no_tower_data_msg"), "error");
+            return;
+        }
+
+        // Only upgradeable skills
+        const validSkills = towerUpgradeDataSet[ownUserId]
+            .filter(s => s.upgradeable && s.name)
+            .map(s => s.name);
+
+        if (validSkills.length === 0) {
+            showToast(lang("no_valid_skill_msg"), "error");
+            return;
+        }
+
+        // Random skills over all rows
+        for (let i = 0; i < MAX_SKILL_BOXES; i++) {
+            const randomIndex = Math.floor(Math.random() * validSkills.length);
+            skillData[i] = validSkills[randomIndex];
+        }
+
+        syncVisualWithSkillData(skillData);
+        showToast(lang("random_skill_selection_msg"), "success");
+    }
+
+    function triggerStatisticsRefresh() {
+        if (!statisticsUid) return;
+        loadStatistics(statisticsUid);
+    }
+
+    function resetStatistics() {
+        const container = document.getElementById("statisticsTableContainer");
+        container.innerHTML = "";
+    }
+
+    function loadStatistics(uid) {
+        if (!uid) return;
+
+        const eventName = statisticsMode === "wave" ? "getWaveStatistic" : "getStatistic";
+        socket.emit(eventName, {towerId: uid}, (res) => {
+            console.log(eventName, res);
+
+            resetStatistics();
+
+            if (!res.statistics || !res.tower) return;
+
+            const container = document.getElementById("statisticsTableContainer");
+
+            const grid = document.createElement("div");
+            grid.style.display = "grid";
+            grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
+            grid.style.gap = "10px";
+
+            const columns = 4;
+
+            res.statistics.forEach((entry, i) => {
+                const item = document.createElement("div");
+
+                const row = Math.floor(i / columns);
+                const col = i % columns;
+                const isDark = (row + col) % 2 === 0;
+                item.style.backgroundColor = isDark ? "#1a1a1a" : "#222";
+
+                item.style.padding = "6px 10px";
+                item.style.border = "1px solid #333";
+                item.style.borderRadius = "6px";
+                item.style.display = "flex";
+                item.style.flexDirection = "column";
+                item.style.fontSize = "13px";
+                item.style.color = "#ccc";
+
+                const towerStatisticsUiTemplates = towerUiTemplates?.find(x => x.tower === res.tower.tower)?.statistics;
+                const readName = towerStatisticsUiTemplates?.find(x => x.name === entry.name)?.readName || entry.name;
+
+                const name = document.createElement("div");
+                name.textContent = readName;
+                name.style.fontWeight = "bold";
+                name.style.marginBottom = "4px";
+
+                const value = document.createElement("div");
+                value.textContent = formatValue(entry.value);
+
+                item.appendChild(name);
+                item.appendChild(value);
+                grid.appendChild(item);
+            });
+
+            container.appendChild(grid);
+        });
+    }
+
+    function formatValue(value) {
+        const num = Number(value);
+        return num.toLocaleString(undefined, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function toggleStatisticMode() {
+        statisticsMode = statisticsMode === "full" ? "wave" : "full";
+
+        const button = document.getElementById("statModeToggle");
+        button.textContent = lang(statisticsMode);
+
+        if (statisticsUid) {
+            loadStatistics(statisticsUid);
+        }
+    }
+
+    function toggleAutoRefresh() {
+        const btn = document.getElementById("autoRefreshToggle");
+        const spinner = document.getElementById("autoRefreshSpinner");
+
+        autoRefreshEnabled = !autoRefreshEnabled;
+
+        if (autoRefreshEnabled) {
+            btn.textContent = ""; // Hide Symbol
+            spinner.style.display = "block";
+
+            autoRefreshInterval = setInterval(() => {
+                triggerStatisticsRefresh();
+            }, 1000);
+        } else {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+
+            btn.textContent = "🚘";
+            spinner.style.display = "none";
+        }
+    }
+
+    function setSelectedStatisticsUid() {
+        const select = document.getElementById("statisticsUserSelect");
+        statisticsUid = parseInt(select.value);
+        triggerStatisticsRefresh();
+    }
+
+    function setStatsUid() {
+        const select = document.getElementById("statsUserSelect");
+        statsUid = parseInt(select.value);
+        renderStatsTable();
+    }
+
+    function fillStatisticsSelectIfNeeded() {
+        if (statisticsSelectFilled) return;
+        updateStatisticsSelectOptions();
+        statisticsSelectFilled = true;
+    }
+
+    function fillStatsSelectIfNeeded() {
+        if (statsSelectFilled) return;
+        updateStatsSelectOptions();
+        statsSelectFilled = true;
+    }
+
+    function resetSelectFills() {
+        statisticsSelectFilled = false;
+        statsSelectFilled = false;
+    }
+
+    function updateStatisticsSelectOptions() {
+        const select = document.getElementById("statisticsUserSelect");
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = "";
+
+        const ownUser = ownUserData?.user;
+        if (ownUser?.displayname) {
+            const option = document.createElement("option");
+            option.value = ownUserId;
+            option.textContent = `» ${ownUser.displayname} «`;
+            select.appendChild(option);
+        }
+
+        const others = Object.keys(towerMainValuesSet)
+            .filter(uid => parseInt(uid) !== ownUserId)
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unknown"}))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        others.forEach(({uid, name}) => {
+            const option = document.createElement("option");
+            option.value = uid;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+
+        if ([...select.options].some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        }
+    }
+
+    function updateStatsSelectOptions() {
+        const select = document.getElementById("statsUserSelect");
+        if (!select) return;
+
+        const currentValue = select.value;
+        select.innerHTML = "";
+
+        const ownUser = ownUserData?.user;
+        if (ownUser?.displayname) {
+            const option = document.createElement("option");
+            option.value = ownUserId;
+            option.textContent = `» ${ownUser.displayname} «`;
+            select.appendChild(option);
+        }
+
+        const others = Object.keys(towerMainValuesSet)
+            .filter(uid => parseInt(uid) !== ownUserId)
+            .map(uid => ({uid, name: userDataSet[uid]?.displayname || "Unknown"}))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        others.forEach(({uid, name}) => {
+            const option = document.createElement("option");
+            option.value = uid;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+
+        if ([...select.options].some(opt => opt.value === currentValue)) {
+            select.value = currentValue;
+        }
+    }
+
+    function initStatisticsSelectDisplay() {
+        const select = document.getElementById("statisticsUserSelect");
+        if (!select || ownUserId === 0) return;
+
+        statisticsUid = ownUserId;
+
+        if (select.options.length === 0 && ownUserData?.user?.displayname) {
+            const opt = document.createElement("option");
+            opt.value = ownUserId;
+            opt.textContent = `» ${ownUserData.user.displayname} «`;
+            select.appendChild(opt);
+            select.value = ownUserId;
+        }
+    }
+
+    function initStatsSelectDisplay() {
+        const select = document.getElementById("statsUserSelect");
+        if (!select || ownUserId === 0) return;
+
+        statsUid = ownUserId;
+
+        if (select.options.length === 0 && ownUserData?.user?.displayname) {
+            const opt = document.createElement("option");
+            opt.value = ownUserId;
+            opt.textContent = `» ${ownUserData.user.displayname} «`;
+            select.appendChild(opt);
+            select.value = ownUserId;
+        }
+    }
+
+    function renderPowerUpsTable() {
+        const container = document.getElementById('powerUpsContainer');
+        container.innerHTML = '';
+
+        if (!mapData?.mapPowerUps || !Array.isArray(mapData.mapPowerUps)) return;
+
+        const table = document.createElement('table');
+        table.style.borderCollapse = 'collapse';
+        table.style.width = '100%';
+        table.style.fontSize = '14px';
+
+        const headers = [lang("pwrup_name"), lang("pwrup_active"), lang("pwrup_limit"), lang("pwrup_userLimit"), lang("pwrup_timeout"), lang("pwrup_owned"), ''];
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            th.style.border = '1px solid #444';
+            th.style.padding = '4px';
+            th.style.backgroundColor = '#222';
+            th.style.color = '#ccc';
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        mapData.mapPowerUps.forEach(powerUp => {
+            const tr = document.createElement('tr');
+
+            tr.dataset.group = powerUp.group;
+            tr.dataset.name = powerUp.name;
+
+            const readName = powerUpUiTemplates?.find(u => u.group === powerUp.group && u.name === powerUp.name).readName || powerUp.group + " - " + powerUp.name;
+
+            const values = [
+                readName,
+                powerUp.used,
+                (powerUp.limit > 0 ? powerUp.limit : '-'),
+                (powerUp.userLimit > 0 ? powerUp.userLimit : '-')
+            ];
+
+            values.forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                td.style.border = '1px solid #444';
+                td.style.padding = '4px';
+                td.style.textAlign = 'center';
+                td.style.color = '#ccc';
+                tr.appendChild(td);
+            });
+
+            const timeoutCell = document.createElement('td');
+            timeoutCell.style.border = '1px solid #444';
+            timeoutCell.style.padding = '4px';
+            timeoutCell.style.textAlign = 'center';
+            timeoutCell.style.color = '#ccc';
+            timeoutCell.dataset.timeout = powerUp.timeout || '';
+            timeoutCell.dataset.group = powerUp.group;
+            timeoutCell.dataset.name = powerUp.name;
+
+            const diff = powerUp.timeout ? Math.floor((powerUp.timeout - Date.now()) / 1000) : null;
+            timeoutCell.textContent = (diff && diff > 0) ? diff + 's' : '-';
+            tr.appendChild(timeoutCell);
+
+            const owned = ownUserData?.powerUps?.find(p => p.group === powerUp.group && p.name === powerUp.name)?.value || 0;
+            const tdOwned = document.createElement('td');
+            tdOwned.textContent = owned;
+            tdOwned.style.border = '1px solid #444';
+            tdOwned.style.padding = '4px';
+            tdOwned.style.textAlign = 'center';
+            tdOwned.style.color = '#ccc';
+            tr.appendChild(tdOwned);
+
+            const tdAction = document.createElement('td');
+            tdAction.style.border = '1px solid #444';
+            tdAction.style.padding = '4px';
+            tdAction.style.textAlign = 'center';
+
+            const btn = document.createElement('button');
+            btn.textContent = lang("pwrup_use");
+            btn.addEventListener("click",() => {
+                socket.emit('usePowerUp', { group: powerUp.group, name: powerUp.name });
+            });
+
+            tdAction.appendChild(btn);
+            tr.appendChild(tdAction);
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    function updatePowerUpRow(updatedData) {
+        const group = updatedData.group;
+        const name = updatedData.name;
+
+        const row = document.querySelector(
+            `#powerUpsContainer tr[data-group="${group}"][data-name="${name}"]`
+        );
+        if (!row) return;
+
+        const cells = row.children;
+
+        if(cells[1])
+            cells[1].textContent = updatedData.used;
+        if(cells[2])
+            cells[2].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
+        if(cells[3])
+            cells[3].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
+
+        if(cells[4]) {
+            const timeoutCell = cells[4];
+            if (typeof updatedData.timeout === 'number') {
+                timeoutCell.dataset.timeout = updatedData.timeout;
+                const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
+                timeoutCell.textContent = seconds > 0 ? seconds + 's' : '-';
+            } else {
+                timeoutCell.textContent = '-';
+                delete timeoutCell.dataset.timeout;
+            }
+        }
+
+        if(cells[5])
+            cells[5].textContent = ownUserData?.powerUps?.find(p =>
+                p.group === group && p.name === name)?.value || 0;
+    }
+    
+    function updatePowerUpTimeout() {
+        const cells = document.querySelectorAll('#powerUpsContainer td[data-timeout]');
+        const now = Date.now();
+
+        cells.forEach(cell => {
+            const timeout = Number(cell.dataset.timeout);
+
+            if (!timeout || isNaN(timeout)) {
+                cell.textContent = '-';
+                return;
+            }
+
+            const seconds = Math.floor((timeout - now) / 1000);
+            cell.textContent = (seconds > 0) ? seconds + 's' : '-';
+        });
+    }
+
+    function showToast(message, type = "info") {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'toast-out 0.3s ease-in forwards';
+            toast.addEventListener('animationend', () => toast.remove());
+        }, 2000);
+    }
+
+    document.addEventListener('mousedown', () => {
+        isMouseDown = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        dragMode = null;
+    });
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            if (isRunning && loopInterval === null) {
+                startLoop();
+            }
+        }
+    });
+
+    const expectedOrigin = location.origin;
+    window.addEventListener("message", (event) => {
+
+        if (event.origin !== expectedOrigin) {
+            console.warn("Blocked message from unknown origin:", event.origin);
+            return;
+        }
+
+        const data = event.data || {};
+
+        // Assign values if present
+        if (data.userLanguage && data.authToken && data.userToken) {
+            language = data.userLanguage || language;
+            const authToken = data.authToken || authToken;
+            const userToken = data.userToken || userToken;
+
+            start(authToken,userToken);
+        } else {
+            console.warn("Received message does not contain expected user data.");
+        }
+    });
+
+
+    window.addEventListener("load", () => {
+
+        try {
+            if (window.opener) {
+                window.opener.postMessage("REQUEST_USER_DATA", location.origin);
+            } else {
+                console.warn("No opener window available.");
+            }
+        } catch (e) {
+            console.error("Failed to request user data from opener:", e);
+        }
+    });
+
+    function applyTranslations() {
+        const dict = translations[language] || translations["en"];
+        document.querySelectorAll("[data-lang]").forEach(el => {
+            const key = el.getAttribute("data-lang");
+            el.textContent = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
+        });
+        document.querySelectorAll("[data-tool-lang]").forEach(el => {
+            const key = el.getAttribute("data-tool-lang");
+            el.title = typeof dict[key] === "function" ? dict[key]() : (dict[key] || key);
+        });
+    }
+
+    function start(authToken, userToken) {
+
+        applyTranslations();
+
+        let domain = location.origin;
+
+        let serverURI = "";
+
+        switch (domain) {
+            case "https://www.c-td.de":
+                serverURI = "wss://ctd.drochmann.de:8125";
+                break;
+            case "https://ctddev.shimly-dev.de":
+                serverURI = "wss://ctd.drochmann.de:8225";
+                break;
+            default:
+                console.error("Unknown domain:", domain);
+                return;
+        }
+
+        loadProfiles();
+
+        startSocket(serverURI, userToken, authToken);
+
+        setInterval(updatePowerUpTimeout, 1000)
+
+    }
+
+    const translations = {
+        en: {
+            loading: "Loading data...",
+            name_: "Name",
+            user_: "User: ",
+            map_: "Map: ",
+            tower_: "Tower: ",
+            level_: "Level: ",
+            typ_: "Typ: ",
+            size_: "Size: ",
+            difficulty_: "Difficulty: ",
+            player_: "Player: ",
+            credits_: "Credits: ",
+            upgrade: "Upgrade",
+            tower_stats: "Attributes",
+            tower_statistics: "Statistics",
+            power_ups: "Power-Ups",
+            full: "Map",
+            wave: "Wave",
+            start: "Start",
+            stop: "Stop",
+            profiles_: "Profiles: ",
+            start_stop: "Start / Stop",
+            select_random: "Select Random",
+            select_profile: "Select Profile",
+            create_profile: "Create Profile",
+            delete_profile: "Delete Profile",
+            load_profile: "Load Profile",
+            save_profile: "Save Profile",
+            change_type: "Change Type",
+            auto_refresh: "Auto Refresh",
+            refresh_statistics: "Refresh",
+
+            pwrup_name: "Name",
+            pwrup_active: "Active",
+            pwrup_limit: "Limit",
+            pwrup_userLimit: "User Limit",
+            pwrup_timeout: "Timeout",
+            pwrup_owned: "Owned",
+            pwrup_use: "Use",
+
+            stats_name: "Name",
+            stats_total: "Total",
+            stats_basic: "Basic",
+            stats_upg: "Upgrade",
+            stats_skill: "Skill",
+            stats_boost: "Boost",
+            stats_buff: "Buff",
+            stats_team: "Team",
+            stats_item: "Item",
+
+            select_profile_msg: "Please select profile or create new one.",
+            profile_saved_msg: "Profile saved.",
+            profile_loaded_msg: "Profile loaded.",
+            profile_load_failed_msg: "Failed to load profile.",
+            new_profile_name_msg: "New profile name:",
+            profile_name_exists_msg: "Profile name already exists.",
+            profile_created_msg: "Profile created.",
+            select_profile_delete_msg: "Please select profile to delete.",
+            profile_really_delete_msg: name => `You really want to delete "${name}"?`,
+            profile_deleted_msg: "Profile deleted.",
+            no_tower_data_msg: "No tower data available.",
+            no_valid_skill_msg: "No valid skills available.",
+            random_skill_selection_msg: "Random skill selection executed."
+        },
+        de: {
+            loading: "Daten werden geladen...",
+            name_: "Name",
+            user_: "Benutzer: ",
+            map_: "Karte: ",
+            tower_: "Turm: ",
+            level_: "Stufe: ",
+            typ_: "Art: ",
+            size_: "Größe: ",
+            difficulty_: "Schwierigkeit: ",
+            player_: "Spieler: ",
+            credits_: "Kredits: ",
+            map: "Karte",
+            upgrade: "Verbesserung",
+            tower_stats: "Eigenschaften",
+            tower_statistics: "Statistiken",
+            power_ups: "Verstärkungen",
+            full: "Karte",
+            wave: "Welle",
+            start: "Start",
+            stop: "Stop",
+            profiles_: "Profile: ",
+            start_stop: "Start / Stop",
+            select_random: "Zufällige Auswahl",
+            select_profile: "Profil auswählen",
+            create_profile: "Profil erstellen",
+            delete_profile: "Profil löschen",
+            load_profile: "Profil laden",
+            save_profile: "Profil speichern",
+            change_type: "Typ ändern",
+            auto_refresh: "Automatisch aktualisieren",
+            refresh: "Aktualisieren",
+
+            pwrup_name: "Name",
+            pwrup_active: "Aktiv",
+            pwrup_limit: "Limit",
+            pwrup_userLimit: "Ben. Limit",
+            pwrup_timeout: "Auszeit",
+            pwrup_owned: "Besitz",
+            pwrup_use: "Verwenden",
+
+            stats_name: "Name",
+            stats_total: "Total",
+            stats_basic: "Basic",
+            stats_upg: "Upgrade",
+            stats_skill: "Skill",
+            stats_boost: "Boost",
+            stats_buff: "Buff",
+            stats_team: "Team",
+            stats_item: "Item",
+
+            select_profile_msg: "Bitte wähle ein Profil aus oder erstelle ein neues.",
+            profile_saved_msg: "Profil gespeichert.",
+            profile_loaded_msg: "Profil geladen.",
+            profile_load_failed_msg: "Profil konnte nicht geladen werden.",
+            new_profile_name_msg: "Name des neuen Profils:",
+            profile_name_exists_msg: "Profilname existiert bereits.",
+            profile_created_msg: "Profil erstellt.",
+            select_profile_delete_msg: "Bitte wähle ein Profil zum Löschen aus.",
+            profile_really_delete_msg: name => `Möchtest du "${name}" wirklich löschen?`,
+            profile_deleted_msg: "Profil gelöscht.",
+            no_tower_data_msg: "Keine Turmdaten verfügbar.",
+            no_valid_skill_msg: "Keine gültigen Fähigkeiten verfügbar.",
+            random_skill_selection_msg: "Zufällige Fähigkeitenauswahl durchgeführt."
+        }
+    };
+</script>
+</body>
+</html>
