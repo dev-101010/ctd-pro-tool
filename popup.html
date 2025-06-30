@@ -492,6 +492,7 @@
                         onchange="setStatsUid()">
                     <!-- Filled dynamic -->
                 </select>
+                <label id="statsTowerNameLabel" style="display:none; border: 1px solid; border-radius: 8px; padding: 4px 8px;"></label>
                 <label style="padding-left: 10px;" for="statsSkillSelect" data-lang="skill_"></label>
                 <select id="statsSkillSelect" class="uidInput" onfocus="fillStatsSkillSelectIfNeeded()"
                         onchange="setStatsSkillId()">
@@ -1171,6 +1172,7 @@
 
     function renderStatsTable() {
         const uid = statsUid ?? ownUserId;
+        updateStatsTower(uid);
         const skillId = statsSkillId ?? 0;
         const towerId = towerMainValuesSet[uid]?.tower;
         const towerUpgradeUiTemplates = towerUiTemplates?.find(x => x.tower === towerId)?.upgrades;
@@ -1420,6 +1422,20 @@
         renderStatsTable();
     }
 
+    function updateStatsTower(uid) {
+        console.log("updateStatsTower", uid);
+        const towerNameLabel = document.getElementById("statsTowerNameLabel");
+        if(!towerNameLabel) return;
+
+        const tower = towerMainValuesSet[uid];
+        if(tower) {
+            towerNameLabel.style.display = "block";
+            towerNameLabel.textContent = tower.name;
+        } else {
+            towerNameLabel.style.display = "none";
+        }
+    }
+
     function setStatsSkillId() {
         const select = document.getElementById("statsSkillSelect");
         statsSkillId = parseInt(select.value);
@@ -1515,6 +1531,7 @@
     }
 
     function updateStatsSkillSelectOptions() {
+
         const select = document.getElementById("statsSkillSelect");
         if (!select) return;
 
