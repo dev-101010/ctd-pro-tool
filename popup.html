@@ -1830,7 +1830,7 @@
             if (window.opener) {
                 window.opener.postMessage("REQUEST_USER_DATA", location.origin);
             } else {
-                console.warn("No opener window available.");
+                window.location.href = "/";
             }
         } catch (e) {
             console.error("Failed to request user data from opener:", e);
