@@ -344,6 +344,13 @@
             }
         }
 
+        #statisticsTableContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px;
+        }
+
         /*noinspection CssUnusedSymbol*/
         .toast {
             background-color: #221;
@@ -492,7 +499,8 @@
                         onchange="setStatsUid()">
                     <!-- Filled dynamic -->
                 </select>
-                <label id="statsTowerNameLabel" style="display:none; border: 1px solid; border-radius: 8px; padding: 4px 8px;"></label>
+                <label id="statsTowerNameLabel"
+                       style="display:none; border: 1px solid; border-radius: 8px; padding: 4px 8px;"></label>
                 <label style="padding-left: 10px;" for="statsSkillSelect" data-lang="skill_"></label>
                 <select id="statsSkillSelect" class="uidInput" onfocus="fillStatsSkillSelectIfNeeded()"
                         onchange="setStatsSkillId()">
@@ -847,7 +855,7 @@
         const map = mapData.map ?? {};
 
         const mapName = map.name ?? "–";
-        const mapType = map.mapType ?? "–";
+        const mapType = map.mapType ? lang("map_" + map.mapType) : "–";
         const mapSize = (map.sizeX && map.sizeY) ? `${map.sizeX}x${map.sizeY}` : "–";
         const mapDiff = map.difficulty ?? "–";
         const maxPlayers = map.players ?? "–";
@@ -855,7 +863,7 @@
         const credits = mapCredits ?? "–";
 
         document.getElementById("mapInfoName").textContent = mapName;
-        document.getElementById("mapInfoType").textContent = lang("map_"+mapType);
+        document.getElementById("mapInfoType").textContent = mapType;
         document.getElementById("mapInfoSize").textContent = mapSize;
         document.getElementById("mapInfoDiff").textContent = mapDiff;
         document.getElementById("mapInfoPlayersCombined").textContent = `${activePlayerCount} / ${maxPlayers}`;
@@ -1216,7 +1224,7 @@
         for (const entry of statsEntryValues) {
             const tr = document.createElement("tr");
             //const towerUpgradeCount = towerUpgradeDataSet[uid]?.find(x => x.name === entry.name)?.count;
-            if (entry.basic < 0) continue;
+            //if (!entry.basic) continue;
 
             for (const head of headers) {
 
@@ -1252,8 +1260,8 @@
                         valueDiv.style.color = "#ccc";
 
                         const percentDiv = document.createElement("div");
-                        if(entry[head+"_pct"])
-                            percentDiv.textContent = `(${entry[head+"_pct"]}%)`;
+                        if (entry[head + "_pct"])
+                            percentDiv.textContent = `(${entry[head + "_pct"]}%)`;
                         percentDiv.style.fontSize = "11px";
                         percentDiv.style.color = "#888";
 
@@ -1320,50 +1328,71 @@
 
             resetStatistics();
 
-            if (!res.statistics || !res.tower) return;
+            if (!res.statistics || !res.tower || !res.skillStatistics) return;
 
             const container = document.getElementById("statisticsTableContainer");
 
-            const grid = document.createElement("div");
-            grid.style.display = "grid";
-            grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
-            grid.style.gap = "10px";
+            for (let i = -1; i < res.skillStatistics.length; i++) {
 
-            const columns = 4;
+                const stats = (i === -1) ? res.statistics : res.skillStatistics[i]?.stats;
 
-            res.statistics.forEach((entry, i) => {
-                const item = document.createElement("div");
+                const label = document.createElement("div");
+                label.style.marginBottom = "6px";
+                label.style.fontWeight = "bold";
+                label.style.fontSize = "14px";
+                label.textContent = (i === -1) ? "old" : res.skillStatistics[i]?.skillName;
 
-                const row = Math.floor(i / columns);
-                const col = i % columns;
-                const isDark = (row + col) % 2 === 0;
-                item.style.backgroundColor = isDark ? "#1a1a1a" : "#222";
+                const grid = document.createElement("div");
+                grid.style.display = "grid";
+                grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
+                grid.style.gap = "10px";
 
-                item.style.padding = "6px 10px";
-                item.style.border = "1px solid #333";
-                item.style.borderRadius = "6px";
-                item.style.display = "flex";
-                item.style.flexDirection = "column";
-                item.style.fontSize = "13px";
-                item.style.color = "#ccc";
+                const columns = 4;
 
-                const towerStatisticsUiTemplates = towerUiTemplates?.find(x => x.tower === res.tower.tower)?.statistics;
-                const readName = towerStatisticsUiTemplates?.find(x => x.name === entry.name)?.readName || entry.name;
+                stats.forEach((entry, i) => {
+                    const item = document.createElement("div");
 
-                const name = document.createElement("div");
-                name.textContent = readName;
-                name.style.fontWeight = "bold";
-                name.style.marginBottom = "4px";
+                    const row = Math.floor(i / columns);
+                    const col = i % columns;
+                    const isDark = (row + col) % 2 === 0;
+                    item.style.backgroundColor = isDark ? "#1a1a1a" : "#222";
 
-                const value = document.createElement("div");
-                value.textContent = formatValue(entry.value);
+                    item.style.padding = "6px 10px";
+                    item.style.border = "1px solid #333";
+                    item.style.borderRadius = "6px";
+                    item.style.display = "flex";
+                    item.style.flexDirection = "column";
+                    item.style.fontSize = "13px";
+                    item.style.color = "#ccc";
 
-                item.appendChild(name);
-                item.appendChild(value);
-                grid.appendChild(item);
-            });
+                    const towerStatisticsUiTemplates = towerUiTemplates?.find(x => x.tower === res.tower.tower)?.statistics;
+                    const readName = towerStatisticsUiTemplates?.find(x => x.name === entry.name)?.readName || entry.name;
 
-            container.appendChild(grid);
+                    const name = document.createElement("div");
+                    name.textContent = readName;
+                    name.style.fontWeight = "bold";
+                    name.style.marginBottom = "4px";
+
+                    const value = document.createElement("div");
+                    value.textContent = formatValue(entry.value);
+
+                    item.appendChild(name);
+                    item.appendChild(value);
+                    grid.appendChild(item);
+                });
+
+                const groupWrapper = document.createElement("div");
+                groupWrapper.style.border = "1px solid #aaa";
+                groupWrapper.style.borderRadius = "8px";
+                groupWrapper.style.padding = "10px";
+                groupWrapper.style.marginBottom = "16px";
+
+                groupWrapper.appendChild(label);
+                groupWrapper.appendChild(grid);
+
+                container.appendChild(groupWrapper);
+
+            }
         });
     }
 
@@ -1424,10 +1453,10 @@
 
     function updateStatsTower(uid) {
         const towerNameLabel = document.getElementById("statsTowerNameLabel");
-        if(!towerNameLabel) return;
+        if (!towerNameLabel) return;
 
         const tower = towerMainValuesSet[uid];
-        if(tower) {
+        if (tower) {
             const readName = towerUiTemplates?.find(x => x.tower === tower.tower)?.readName || tower.name;
             towerNameLabel.style.display = "block";
             towerNameLabel.textContent = readName;
@@ -1868,12 +1897,12 @@
             tower_stats: "Attributes",
             tower_statistics: "Statistics",
             power_ups: "Power-Ups",
-            skill:"Skill",
+            skill: "Skill",
             full: "Map",
             wave: "Wave",
             start: "Start",
             stop: "Stop",
-            other: "other",
+            other: "Neutral",
             profiles_: "Profiles: ",
             start_stop: "Start / Stop",
             select_random: "Select Random",
@@ -1938,12 +1967,12 @@
             tower_stats: "Eigenschaften",
             tower_statistics: "Statistiken",
             power_ups: "Verstärkungen",
-            skill:"Fähigkeit",
+            skill: "Fähigkeit",
             full: "Karte",
             wave: "Welle",
             start: "Start",
             stop: "Stop",
-            other: "anderer",
+            other: "Neutral",
             profiles_: "Profile: ",
             start_stop: "Start / Stop",
             select_random: "Zufällige Auswahl",
