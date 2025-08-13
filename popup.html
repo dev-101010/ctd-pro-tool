@@ -1705,7 +1705,7 @@
             const btn = document.createElement('button');
             btn.textContent = lang("pwrup_use");
             btn.addEventListener("click", () => {
-                socket.emit('usePowerUp', {group: powerUp.group, name: powerUp.name});
+                socket.emit('usePowerUp', {group: powerUp.group, name: powerUp.name,value: 1});
             });
 
             tdAction.appendChild(btn);
