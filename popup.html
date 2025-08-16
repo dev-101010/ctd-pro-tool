@@ -804,32 +804,29 @@
                 }
             }
 
-            updatePowerUpRow(data.powerUp);
+            updatePowerUpRow(data.mapPowerUp);
         });
 
         socket.on("powerUpsUsed", (data, act) => {
             act();
 
             for(let powerUp of data.powerUps) {
-                const group = data.powerUp.group;
-                const name = data.powerUp.name;
-                const value = data.powerUp.value;
 
-                const powerUpIdx = mapData.mapPowerUps.findIndex(
-                    p => p.group === group && p.name === name
-                );
+                const powerUpIdx = mapData.mapPowerUps.findIndex(pUp => pUp.group === powerUp.group && pUp.name === powerUp.name);
                 if (powerUpIdx >= 0) {
-                    mapData.mapPowerUps[powerUpIdx] = data.mapPowerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                    mapData.mapPowerUps[powerUpIdx] = data.mapPowerUps.find(pUp => pUp.group === powerUp.group && pUp.name === powerUp.name);
                 }
 
                 if (ownUserId === data.user.uid) {
-                    const reducePowerUp = ownUserData.powerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                    const reducePowerUp = ownUserData.powerUps.find(pUp => pUp.group === powerUp.group && pUp.name === powerUp.name);
                     if (reducePowerUp) {
-                        reducePowerUp.value = reducePowerUp.value - value;
+                        reducePowerUp.value = reducePowerUp.value - powerUp.value;
                     }
                 }
+            }
 
-                updatePowerUpRow(powerUp);
+            for(const mapPowerUp of data.mapPowerUps){
+                updatePowerUpRow(mapPowerUp);
             }
         });
     }
@@ -1745,9 +1742,9 @@
         container.appendChild(table);
     }
 
-    function updatePowerUpRow(updatedData) {
-        const group = updatedData.group;
-        const name = updatedData.name;
+    function updatePowerUpRow(mapPowerUp) {
+        const group = mapPowerUp.group;
+        const name = mapPowerUp.name;
 
         const row = document.querySelector(
             `#powerUpsContainer tr[data-group="${group}"][data-name="${name}"]`
@@ -1757,17 +1754,17 @@
         const cells = row.children;
 
         if (cells[1])
-            cells[1].textContent = updatedData.used;
+            cells[1].textContent = mapPowerUp.used;
         if (cells[2])
-            cells[2].textContent = updatedData.limit > 0 ? updatedData.limit : '-';
+            cells[2].textContent = mapPowerUp.limit > 0 ? mapPowerUp.limit : '-';
         if (cells[3])
-            cells[3].textContent = updatedData.userLimit > 0 ? updatedData.userLimit : '-';
+            cells[3].textContent = mapPowerUp.userLimit > 0 ? mapPowerUp.userLimit : '-';
 
         if (cells[4]) {
             const timeoutCell = cells[4];
-            if (typeof updatedData.timeout === 'number') {
-                timeoutCell.dataset.timeout = updatedData.timeout;
-                const seconds = Math.floor((updatedData.timeout - Date.now()) / 1000);
+            if (typeof mapPowerUp.timeout === 'number') {
+                timeoutCell.dataset.timeout = mapPowerUp.timeout;
+                const seconds = Math.floor((mapPowerUp.timeout - Date.now()) / 1000);
                 timeoutCell.textContent = seconds > 0 ? seconds + 's' : '-';
             } else {
                 timeoutCell.textContent = '-';
