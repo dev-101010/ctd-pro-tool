@@ -788,22 +788,49 @@
 
             const group = data.powerUp.group;
             const name = data.powerUp.name;
+            const value = data.powerUp.value;
 
             const powerUpIdx = mapData.mapPowerUps.findIndex(
                 p => p.group === group && p.name === name
             );
             if (powerUpIdx >= 0) {
-                mapData.mapPowerUps[powerUpIdx] = data.powerUp;
+                mapData.mapPowerUps[powerUpIdx] = data.mapPowerUp;
             }
 
             if (ownUserId === data.user.uid) {
                 const reducePowerUp = ownUserData.powerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
                 if (reducePowerUp) {
-                    reducePowerUp.value = reducePowerUp.value - 1;
+                    reducePowerUp.value = reducePowerUp.value - value;
                 }
             }
 
             updatePowerUpRow(data.powerUp);
+        });
+
+        socket.on("powerUpsUsed", (data, act) => {
+            act();
+
+            for(let powerUp of data.powerUps) {
+                const group = data.powerUp.group;
+                const name = data.powerUp.name;
+                const value = data.powerUp.value;
+
+                const powerUpIdx = mapData.mapPowerUps.findIndex(
+                    p => p.group === group && p.name === name
+                );
+                if (powerUpIdx >= 0) {
+                    mapData.mapPowerUps[powerUpIdx] = data.mapPowerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                }
+
+                if (ownUserId === data.user.uid) {
+                    const reducePowerUp = ownUserData.powerUps.find(powerUp => powerUp.group === group && powerUp.name === name);
+                    if (reducePowerUp) {
+                        reducePowerUp.value = reducePowerUp.value - value;
+                    }
+                }
+
+                updatePowerUpRow(powerUp);
+            }
         });
     }
 
