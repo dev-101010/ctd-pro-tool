@@ -790,9 +790,7 @@
             const name = data.powerUp.name;
             const value = data.powerUp.value;
 
-            const powerUpIdx = mapData.mapPowerUps.findIndex(
-                p => p.group === group && p.name === name
-            );
+            const powerUpIdx = mapData.mapPowerUps.findIndex( pUp => pUp.group === group && pUp.name === name );
             if (powerUpIdx >= 0) {
                 mapData.mapPowerUps[powerUpIdx] = data.mapPowerUp;
             }
