@@ -699,6 +699,15 @@
             });
         });
 
+        socket.on("updateUserPowerUps", (data, act) => {
+            act();
+
+            if(data.user.uid === ownUserId) {
+                ownUserData.powerUps = data.powerUps;
+                renderPowerUpsTable();
+            }
+        });
+
         socket.on("mapLoaded", (data, act) => {
             act();
             resetMap();
