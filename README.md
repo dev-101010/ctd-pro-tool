@@ -1,4 +1,5 @@
 # C-TD Pro Tool
+### Version 0.23
 
 Installiere in deinem Browser die [Tampermonkey](https://www.tampermonkey.net/index.php) extension.
 
