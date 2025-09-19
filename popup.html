@@ -1215,6 +1215,11 @@
             }
         });
     }
+    
+    function toFormatedString(value) {
+        const num = Number(value);
+        return num.toLocaleString(language, { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+    }
 
     function renderStatsTable() {
         const uid = statsUid ?? ownUserId;
@@ -1271,7 +1276,7 @@
 
                 switch (head) {
                     case "value":
-                        td.textContent = entry.value;
+                        td.textContent = toFormatedString(entry.value);
                         td.style.fontWeight = "bold";
                         td.style.color = "limegreen";
                         break;
@@ -1283,7 +1288,7 @@
                         break;
 
                     case "basic":
-                        td.textContent = entry.basic;
+                        td.textContent = toFormatedString(entry.basic);
                         td.style.color = "#ffd700";
                         break;
 
@@ -1294,12 +1299,11 @@
                         wrapper.style.alignItems = "center";
 
                         const valueDiv = document.createElement("div");
-                        valueDiv.textContent = entry[head];
+                        valueDiv.textContent = toFormatedString(entry[head]);
                         valueDiv.style.color = "#ccc";
 
                         const percentDiv = document.createElement("div");
-                        if (entry[head + "_pct"])
-                            percentDiv.textContent = `(${entry[head + "_pct"]}%)`;
+                        if (entry[head + "_pct"]) percentDiv.textContent = `(${toFormatedString(entry[head + "_pct"])}%)`;
                         percentDiv.style.fontSize = "11px";
                         percentDiv.style.color = "#888";
 
@@ -1412,7 +1416,7 @@
                     name.style.marginBottom = "4px";
 
                     const value = document.createElement("div");
-                    value.textContent = formatValue(entry.value);
+                    value.textContent = toFormatedString(entry.value);
 
                     item.appendChild(name);
                     item.appendChild(value);
@@ -1431,14 +1435,6 @@
                 container.appendChild(groupWrapper);
 
             }
-        });
-    }
-
-    function formatValue(value) {
-        const num = Number(value);
-        return num.toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
         });
     }
 
