@@ -846,7 +846,6 @@
         const multi = towerMainValuesSet[ownUserId]?.upgradeMulti ?? 1;
         neededCredits = cost * multi;
         neededCreditsEl.innerHTML = `${neededCredits}`;
-        upgradeTower();
     }
 
     function resetOwnTower() {
@@ -1379,7 +1378,7 @@
                 label.style.marginBottom = "6px";
                 label.style.fontWeight = "bold";
                 label.style.fontSize = "14px";
-                label.textContent = (i === -1) ? "old" : res.skillStatistics[i]?.skillName;
+                label.textContent = (i === -1) ? lang("combined") : res.skillStatistics[i]?.skillName;
 
                 const grid = document.createElement("div");
                 grid.style.display = "grid";
@@ -1953,6 +1952,7 @@
             change_type: "Change Type",
             auto_refresh: "Auto Refresh",
             refresh_statistics: "Refresh",
+            combined: "Combined",
 
             pwrup_name: "Name",
             pwrup_active: "Active",
@@ -2023,6 +2023,7 @@
             change_type: "Typ ändern",
             auto_refresh: "Automatisch aktualisieren",
             refresh: "Aktualisieren",
+            combined: "Kombiniert",
 
             pwrup_name: "Name",
             pwrup_active: "Aktiv",
