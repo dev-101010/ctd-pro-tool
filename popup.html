@@ -1157,9 +1157,17 @@
     }
 
     function setButtonState(running) {
-        if (isRunning !== running) {
-            toggleButtonState();
+        isRunning = running;
+        const btn = document.getElementById("toggleStartStop");
+        if (isRunning) {
+            btn.textContent = lang("stop");
+            btn.style.backgroundColor = "red";
+        } else {
+            btn.textContent = lang("start");
+            btn.style.backgroundColor = "green";
         }
+
+        if (isRunning) startLoop(); else stopLoop();
     }
 
     let lastUpdateTime = 0;
